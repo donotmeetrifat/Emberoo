@@ -221,7 +221,7 @@ export default function CustomizeModal({ config, onSave, onClose }: CustomizeMod
               <strong>Pickup Sound Effect</strong>
               <div className="audio-subtext">
                 {pickupSound === DEFAULT_CONFIG.pickupSound
-                  ? 'Default (nova-pickup.mp3)'
+                  ? 'Default (Fahhh)'
                   : 'Custom Audio Loaded'}
               </div>
             </div>
@@ -254,7 +254,7 @@ export default function CustomizeModal({ config, onSave, onClose }: CustomizeMod
                   className="link-btn"
                   onClick={() => setPickupSound(DEFAULT_CONFIG.pickupSound)}
                 >
-                  Reset to Default
+                  Reset to Fahhh
                 </button>
               )}
             </div>

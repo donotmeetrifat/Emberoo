@@ -11,7 +11,7 @@ export const DEFAULT_CONFIG: CharacterConfig = {
   heroName: 'Bean',
   collectibleImage: '/assets/2-trimmed.png',
   collectibleName: 'Stickman',
-  pickupSound: '/assets/nova-pickup.mp3',
+  pickupSound: '/assets/Fahhh.mp3',
 };
 
 const STORAGE_KEY = 'firebound_character_config_v2';
@@ -26,7 +26,10 @@ export function loadCharacterConfig(): CharacterConfig {
       heroName: parsed.heroName?.trim() || DEFAULT_CONFIG.heroName,
       collectibleImage: parsed.collectibleImage || DEFAULT_CONFIG.collectibleImage,
       collectibleName: parsed.collectibleName?.trim() || DEFAULT_CONFIG.collectibleName,
-      pickupSound: parsed.pickupSound || DEFAULT_CONFIG.pickupSound,
+      pickupSound:
+        parsed.pickupSound && parsed.pickupSound !== '/assets/nova-pickup.mp3'
+          ? parsed.pickupSound
+          : DEFAULT_CONFIG.pickupSound,
     };
   } catch {
     return { ...DEFAULT_CONFIG };
