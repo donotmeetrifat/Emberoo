@@ -178,7 +178,10 @@ function App() {
   return (
     <main className="game-shell">
       <header className="topline">
-        <div className="brand"><div className="brand-mark">N</div><div>NOVA FIREBOUND<small>AN ADVENTURE IN THREE ACTS</small></div></div>
+        <div className="brand">
+          <img src="/assets/emberoo-run-icon.png" alt="Emberoo" className="brand-mark-img" />
+          <div>EMBEROO<small>AN ADVENTURE IN THREE ACTS</small></div>
+        </div>
         <div className="top-actions">
           <button
             className="icon-button"
@@ -195,7 +198,7 @@ function App() {
         </div>
       </header>
 
-      <section className="game-frame" aria-label="NOVA Firebound game">
+      <section className="game-frame" aria-label="Emberoo game">
         <div className="game-stage">
           <GameCanvas
             level={level}
@@ -234,9 +237,9 @@ function App() {
           {scene === 'title' && (
             <div className="overlay">
               <div className="modal-card">
-                <div className="title-logo">N</div>
+                <img src="/assets/emberoo-run-icon.png" alt="Emberoo" className="title-logo-img" />
                 <div className="modal-kicker">A little journey, a lot of heart</div>
-                <h1 className="modal-title">NOVA<br />Firebound</h1>
+                <h1 className="modal-title">Emberoo</h1>
                 <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to {charConfig.collectibleName}.</p>
                 <div className="portrait-row">
                   <div className="portrait-card hero">

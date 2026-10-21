@@ -440,7 +440,7 @@ export default function GameCanvas({
 
   return (
     <>
-      <canvas ref={canvasRef} aria-label="NOVA Firebound platform game" />
+      <canvas ref={canvasRef} aria-label="Emberoo platform game" />
       <div className="mobile-controls">
         <div className="touch-cluster">
           <button className="touch-button" aria-label="Move left" onPointerDown={() => touch('left', true)} onPointerUp={() => touch('left', false)} onPointerLeave={() => touch('left', false)}>←</button>
