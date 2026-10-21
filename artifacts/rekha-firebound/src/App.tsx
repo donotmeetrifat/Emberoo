@@ -8,13 +8,14 @@ const levelNames = ['Sunny Grasslands', 'Copper Dune Run', 'Emberpeak Pass'];
 function App() {
   const [scene, setScene] = useState<Scene>('title');
   const [level, setLevel] = useState(1);
-  const [rekhas, setRekhas] = useState(0);
+  const [novaCount, setNovaCount] = useState(0);
   const [lives, setLives] = useState(3);
   const [seconds, setSeconds] = useState(0);
   const [progress, setProgress] = useState(0);
   const [muted, setMuted] = useState(false);
   const [checkpointToast, setCheckpointToast] = useState(false);
   const audioRef = useRef<AudioContext | null>(null);
+  const pickupAudioRef = useRef<HTMLAudioElement | null>(null);
   const musicRef = useRef<number | null>(null);
   const beatRef = useRef(0);
   const mutedRef = useRef(false);
@@ -63,6 +64,7 @@ function App() {
 
   useEffect(() => () => {
     stopMusic();
+    pickupAudioRef.current?.pause();
     if (audioRef.current) void audioRef.current.close();
   }, [stopMusic]);
 
@@ -88,19 +90,30 @@ function App() {
 
   const begin = () => {
     getAudio();
-    setLevel(1); setRekhas(0); setLives(3); setSeconds(0); setProgress(0);
+    setLevel(1); setNovaCount(0); setLives(3); setSeconds(0); setProgress(0);
     setScene('playing');
   };
   const collect = () => {
-    setRekhas((n) => n + 1);
-    tone(880, .09, 'triangle', .055); tone(1175, .14, 'triangle', .045, .08);
-    if ('speechSynthesis' in window && !mutedRef.current) {
-      window.speechSynthesis.cancel();
-      const phrase = new SpeechSynthesisUtterance('Rekha');
-      phrase.rate = .9; phrase.pitch = 1.25; phrase.volume = .65;
-      window.speechSynthesis.speak(phrase);
+    setNovaCount((n) => n + 1);
+    if (!mutedRef.current) {
+      if (!pickupAudioRef.current) {
+        pickupAudioRef.current = new Audio('/assets/nova-pickup.mp3');
+        pickupAudioRef.current.preload = 'auto';
+        pickupAudioRef.current.volume = .8;
+      }
+      pickupAudioRef.current.currentTime = 0;
+      void pickupAudioRef.current.play().catch(() => tone(880, .12, 'triangle', .05));
     }
   };
+  const toggleMute = () => setMuted((current) => {
+    const next = !current;
+    mutedRef.current = next;
+    if (next && pickupAudioRef.current) {
+      pickupAudioRef.current.pause();
+      pickupAudioRef.current.currentTime = 0;
+    }
+    return next;
+  });
   const jump = () => {
     const optionalJump = new Audio('/assets/aag.mp3');
     optionalJump.volume = mutedRef.current ? 0 : .45;
@@ -129,7 +142,7 @@ function App() {
     setLevel((n) => n + 1); setProgress(0); setScene('playing');
   };
   const retry = () => {
-    setLevel(1); setLives(3); setRekhas(0); setSeconds(0); setProgress(0); setScene('playing');
+    setLevel(1); setLives(3); setNovaCount(0); setSeconds(0); setProgress(0); setScene('playing');
   };
   const timeLabel = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
   const isGame = scene !== 'title';
@@ -138,14 +151,14 @@ function App() {
   return (
     <main className="game-shell">
       <header className="topline">
-        <div className="brand"><div className="brand-mark">R</div><div>REKHA FIREBOUND<small>AN ADVENTURE IN THREE ACTS</small></div></div>
+        <div className="brand"><div className="brand-mark">N</div><div>NOVA FIREBOUND<small>AN ADVENTURE IN THREE ACTS</small></div></div>
         <div className="top-actions">
-          <button className="icon-button" onClick={() => setMuted((m) => !m)} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>{muted ? 'Sound off' : 'Sound on'}</button>
+          <button className="icon-button" onClick={toggleMute} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>{muted ? 'Sound off' : 'Sound on'}</button>
           {scene === 'playing' && <button className="icon-button" onClick={() => setScene('paused')} aria-label="Pause game">Ⅱ</button>}
         </div>
       </header>
 
-      <section className="game-frame" aria-label="Rekha Firebound game">
+      <section className="game-frame" aria-label="NOVA Firebound game">
         <div className="game-stage">
           <GameCanvas
             level={level}
@@ -160,7 +173,7 @@ function App() {
           {isGame && (
             <div className="hud">
               <div className="hud-group">
-                <div className="hud-chip"><img className="hud-portrait" src="/assets/collectible.png" alt="" /><strong>{rekhas}</strong><span>REKHA</span></div>
+                <div className="hud-chip"><img className="hud-portrait" src="/assets/collectible.png" alt="" /><strong>{novaCount}</strong><span>NOVA</span></div>
                 <div className="hud-chip"><span className="hud-heart">♥</span><strong>{lives}</strong></div>
               </div>
               <div className="hud-group">
@@ -176,14 +189,14 @@ function App() {
           {scene === 'title' && (
             <div className="overlay">
               <div className="modal-card">
-                <div className="title-logo">R</div>
+                <div className="title-logo">N</div>
                 <div className="modal-kicker">A little journey, a lot of heart</div>
-                <h1 className="modal-title">Rekha<br />Firebound</h1>
-                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to Rekha.</p>
+                <h1 className="modal-title">NOVA<br />Firebound</h1>
+                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to NOVA.</p>
                 <div className="portrait-row">
-                  <div className="portrait-card hero"><img src="/assets/hero.png" alt="Your brave adventurer" /></div>
+                  <div className="portrait-card hero"><img src="/assets/hero-transparent.png" alt="Your brave adventurer" /></div>
                   <span className="heart-link">✦</span>
-                  <div className="portrait-card"><img src="/assets/collectible.png" alt="Rekha" /></div>
+                  <div className="portrait-card"><img src="/assets/collectible.png" alt="NOVA" /></div>
                 </div>
                 <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
                 <div className="instructions"><span className="keycap">← → / A D</span><span className="keycap">SPACE / W / ↑ JUMP</span></div>
@@ -201,7 +214,7 @@ function App() {
           {scene === 'complete' && (
             <div className="overlay"><div className="modal-card">
               <div className="modal-kicker">Chapter {level} cleared</div><h2 className="modal-title">Level complete!</h2>
-              <p className="modal-copy">You found {rekhas} {rekhas === 1 ? 'Rekha' : 'Rekhas'} on the way. The path keeps going.</p>
+              <p className="modal-copy">You found {novaCount} NOVA {novaCount === 1 ? 'portrait' : 'portraits'} on the way. The path keeps going.</p>
               <button className="primary-button" onClick={advance}>Enter {levelNames[level]} <span aria-hidden="true">→</span></button>
               <div className="instructions"><span className="keycap">{timeLabel} ADVENTURE TIME</span></div>
             </div></div>
@@ -209,7 +222,7 @@ function App() {
           {scene === 'gameover' && (
             <div className="overlay"><div className="modal-card">
               <div className="modal-kicker">The fire got the better of us</div><h2 className="modal-title">One more try?</h2>
-              <p className="modal-copy">Every brave run teaches you the way. Rekha is still out there.</p>
+              <p className="modal-copy">Every brave run teaches you the way. NOVA is still out there.</p>
               <button className="primary-button" onClick={retry}>Retry adventure</button>
               <button className="secondary-button" onClick={() => setScene('title')}>Title screen</button>
             </div></div>
@@ -218,7 +231,7 @@ function App() {
             <div className="overlay"><div className="modal-card">
               <div className="title-logo">♥</div><div className="modal-kicker">All three worlds, one big heart</div>
               <h2 className="modal-title">Together again.</h2>
-              <p className="modal-copy">You crossed every flame and found {rekhas} Rekhas. The best part of every adventure is who waits at the end.</p>
+              <p className="modal-copy">You crossed every flame and found {novaCount} NOVA portraits. The best part of every adventure is who waits at the end.</p>
               <button className="primary-button" onClick={retry}>Play again</button>
               <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
             </div></div>
@@ -227,7 +240,7 @@ function App() {
       </section>
       <footer className="bottom-bar">
         <div className="bottom-note"><span className="pixel-dot" /> {isGame ? levelNames[level - 1] : 'Three worlds. One reason to keep going.'}</div>
-        <div className="bottom-note"><span className="keycap">ESC</span> {scene === 'playing' ? 'pause' : 'a story made for Rekha'}</div>
+        <div className="bottom-note"><span className="keycap">ESC</span> {scene === 'playing' ? 'pause' : 'a story made for NOVA'}</div>
       </footer>
     </main>
   );

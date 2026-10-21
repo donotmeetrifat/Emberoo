@@ -97,37 +97,24 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
-    canvas.width = 960;
-    canvas.height = 540;
+    const renderScale = 2;
+    canvas.width = 960 * renderScale;
+    canvas.height = 540 * renderScale;
+    ctx.scale(renderScale, renderScale);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     const hero = new Image();
-    hero.src = '/assets/hero.png';
+    hero.src = '/assets/hero-transparent.png';
     let heroReady = false;
-    const keyed = document.createElement('canvas');
-    const keyedCtx = keyed.getContext('2d', { willReadFrequently: true });
-    hero.onload = () => {
-      keyed.width = hero.width;
-      keyed.height = hero.height;
-      keyedCtx?.drawImage(hero, 0, 0);
-      if (keyedCtx) {
-        const imageData = keyedCtx.getImageData(0, 0, keyed.width, keyed.height);
-        const p = imageData.data;
-        for (let i = 0; i < p.length; i += 4) {
-          const max = Math.max(p[i], p[i + 1], p[i + 2]);
-          if (max < 36) p[i + 3] = 0;
-          else if (max < 78 && p[i] < 55 && p[i + 1] < 55 && p[i + 2] < 55) p[i + 3] = Math.round(p[i + 3] * (max - 36) / 42);
-        }
-        keyedCtx.putImageData(imageData, 0, 0);
-      }
-      heroReady = true;
-    };
-    const rekha = new Image();
-    rekha.src = '/assets/collectible.png';
-    let rekhaReady = false;
-    rekha.onload = () => { rekhaReady = true; };
+    hero.onload = () => { heroReady = true; };
+    const novaSprite = new Image();
+    novaSprite.src = '/assets/collectible.png';
+    let novaReady = false;
+    novaSprite.onload = () => { novaReady = true; };
 
     const input = { left: false, right: false, jump: false };
     const game = {
-      x: 78, y: 350, vx: 0, vy: 0, w: 54, h: 74, facing: 1, grounded: false,
+      x: 78, y: 334, vx: 0, vy: 0, w: 72, h: 98, facing: 1, grounded: false,
       camera: 0, frame: 0, lastJump: false, checkpoint: 78, lastCheckpoint: 78,
       invulnerable: 0, flash: 0, label: '' as string, labelUntil: 0, goalSent: false,
       level, data: buildLevel(level),
@@ -155,7 +142,7 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
       if (game.level !== levelRef.current) {
         game.level = levelRef.current;
         game.data = buildLevel(game.level);
-        game.x = 78; game.y = 350; game.vx = 0; game.vy = 0; game.camera = 0;
+        game.x = 78; game.y = 432 - game.h; game.vx = 0; game.vy = 0; game.camera = 0;
         game.checkpoint = 78; game.lastCheckpoint = 78; game.goalSent = false;
       }
       if (activeRef.current) {
@@ -186,7 +173,7 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
           game.vy = -11.2;
           game.grounded = false;
           callbacks.current.onJump();
-          game.label = 'Aag'; game.labelUntil = game.frame + 60;
+          game.label = 'rifat'; game.labelUntil = game.frame + 60;
         }
         game.lastJump = input.jump;
         if (input.jump && game.vy < -3) game.vy -= .19 * dt;
@@ -215,13 +202,13 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
           const hitTop = h.type === 'pit' ? h.y + 2 : h.type === 'pillar' ? hy : h.type === 'ball' ? h.y - 18 : hy - 24;
           const hitBottom = h.type === 'pillar' ? h.y : h.type === 'pit' ? h.y + 18 : h.type === 'ball' ? h.y + 18 : hy + 5;
           if (game.invulnerable <= 0 && game.x + game.w * .75 > hx && game.x + game.w * .25 < hx + h.w && game.y + game.h > hitTop && game.y + 12 < hitBottom) {
-            game.x = game.checkpoint; game.y = 350; game.vx = 0; game.vy = 0; game.invulnerable = 110; callbacks.current.onDeath();
+            game.x = game.checkpoint; game.y = 432 - game.h; game.vx = 0; game.vy = 0; game.invulnerable = 110; callbacks.current.onDeath();
             break;
           }
         }
         for (const p of game.data.pickups) {
           if (!p.taken && Math.abs(game.x + game.w / 2 - p.x) < 38 && Math.abs(game.y + game.h / 2 - (p.y + Math.sin(game.frame * .05 + p.phase) * 7)) < 52) {
-            p.taken = true; callbacks.current.onCollect(); game.label = 'Rekha'; game.labelUntil = game.frame + 60;
+            p.taken = true; callbacks.current.onCollect(); game.label = 'NOVA'; game.labelUntil = game.frame + 60;
           }
         }
         if (game.x > game.checkpoint && game.checkpoint < game.data.length / 2 && game.x > game.data.length * .48) {
@@ -323,7 +310,7 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
         const py = p.y + Math.sin(game.frame * .05 + p.phase) * 7;
         ctx.fillStyle = '#fff4a8'; ctx.fillRect(p.x - 20, py - 17, 4, 4); ctx.fillRect(p.x + 19, py + 10, 3, 3);
         ctx.fillStyle = '#e4a34f'; ctx.beginPath(); ctx.ellipse(p.x, py + 17, 18, 4, 0, 0, Math.PI * 2); ctx.fill();
-        if (rekhaReady) ctx.drawImage(rekha, p.x - 15, py - 28, 30, 45);
+        if (novaReady) ctx.drawImage(novaSprite, p.x - 18, py - 34, 36, 54);
       }
       // Player with a gentle squash/stretch run cycle.
       const running = Math.abs(game.vx) > .5 && game.grounded;
@@ -334,10 +321,10 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
         if (game.facing < 0) ctx.scale(-1, 1);
         if (heroReady) {
           ctx.scale(1 / squash, squash);
-          ctx.drawImage(keyed, -game.w * .43, -game.h, game.w * .86, game.h);
+          ctx.drawImage(hero, -game.w / 2, -game.h, game.w, game.h);
         } else {
-          ctx.fillStyle = '#29334c'; ctx.fillRect(-19, -62, 38, 62);
-          ctx.fillStyle = '#f4bd83'; ctx.fillRect(-13, -71, 26, 28);
+          ctx.fillStyle = '#29334c'; ctx.fillRect(-22, -72, 44, 72);
+          ctx.fillStyle = '#f4bd83'; ctx.fillRect(-15, -82, 30, 30);
         }
         ctx.restore();
       }
@@ -378,7 +365,7 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
 
   return (
     <>
-      <canvas ref={canvasRef} aria-label="Rekha Firebound platform game" />
+      <canvas ref={canvasRef} aria-label="NOVA Firebound platform game" />
       <div className="mobile-controls">
         <div className="touch-cluster">
           <button className="touch-button" aria-label="Move left" onPointerDown={() => touch('left', true)} onPointerUp={() => touch('left', false)} onPointerLeave={() => touch('left', false)}>←</button>
