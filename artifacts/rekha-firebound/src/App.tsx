@@ -1,0 +1,236 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import GameCanvas from './GameCanvas';
+
+type Scene = 'title' | 'playing' | 'paused' | 'complete' | 'gameover' | 'victory';
+
+const levelNames = ['Sunny Grasslands', 'Copper Dune Run', 'Emberpeak Pass'];
+
+function App() {
+  const [scene, setScene] = useState<Scene>('title');
+  const [level, setLevel] = useState(1);
+  const [rekhas, setRekhas] = useState(0);
+  const [lives, setLives] = useState(3);
+  const [seconds, setSeconds] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [checkpointToast, setCheckpointToast] = useState(false);
+  const audioRef = useRef<AudioContext | null>(null);
+  const musicRef = useRef<number | null>(null);
+  const beatRef = useRef(0);
+  const mutedRef = useRef(false);
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
+  mutedRef.current = muted;
+
+  const getAudio = useCallback(() => {
+    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return null;
+    if (!audioRef.current) audioRef.current = new AudioCtor();
+    if (audioRef.current.state === 'suspended') void audioRef.current.resume();
+    return audioRef.current;
+  }, []);
+
+  const tone = useCallback((frequency: number, duration: number, wave: OscillatorType = 'square', volume = .045, delay = 0) => {
+    if (mutedRef.current) return;
+    const audio = getAudio();
+    if (!audio) return;
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.type = wave;
+    osc.frequency.setValueAtTime(frequency, audio.currentTime + delay);
+    gain.gain.setValueAtTime(.0001, audio.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(volume, audio.currentTime + delay + .012);
+    gain.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + delay + duration);
+    osc.connect(gain); gain.connect(audio.destination);
+    osc.start(audio.currentTime + delay); osc.stop(audio.currentTime + delay + duration + .03);
+  }, [getAudio]);
+
+  const stopMusic = useCallback(() => {
+    if (musicRef.current !== null) window.clearInterval(musicRef.current);
+    musicRef.current = null;
+  }, []);
+
+  const startMusic = useCallback(() => {
+    stopMusic();
+    const notes = [392, 494, 587, 494, 440, 523, 659, 523, 392, 494, 587, 784, 659, 587, 523, 440];
+    musicRef.current = window.setInterval(() => {
+      if (sceneRef.current !== 'playing' || mutedRef.current) return;
+      const step = beatRef.current++ % notes.length;
+      tone(notes[step], .16, step % 4 === 0 ? 'triangle' : 'square', .018);
+      if (step % 4 === 0) tone(notes[step] / 2, .22, 'triangle', .014);
+    }, 190);
+  }, [stopMusic, tone]);
+
+  useEffect(() => () => {
+    stopMusic();
+    if (audioRef.current) void audioRef.current.close();
+  }, [stopMusic]);
+
+  useEffect(() => {
+    if (scene === 'playing') startMusic();
+    else stopMusic();
+  }, [scene, startMusic, stopMusic]);
+
+  useEffect(() => {
+    if (scene !== 'playing') return;
+    const timer = window.setInterval(() => setSeconds((n) => n + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [scene]);
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'escape' && sceneRef.current === 'playing') setScene('paused');
+      else if (event.key.toLowerCase() === 'escape' && sceneRef.current === 'paused') setScene('playing');
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const begin = () => {
+    getAudio();
+    setLevel(1); setRekhas(0); setLives(3); setSeconds(0); setProgress(0);
+    setScene('playing');
+  };
+  const collect = () => {
+    setRekhas((n) => n + 1);
+    tone(880, .09, 'triangle', .055); tone(1175, .14, 'triangle', .045, .08);
+    if ('speechSynthesis' in window && !mutedRef.current) {
+      window.speechSynthesis.cancel();
+      const phrase = new SpeechSynthesisUtterance('Rekha');
+      phrase.rate = .9; phrase.pitch = 1.25; phrase.volume = .65;
+      window.speechSynthesis.speak(phrase);
+    }
+  };
+  const jump = () => {
+    const optionalJump = new Audio('/assets/aag.mp3');
+    optionalJump.volume = mutedRef.current ? 0 : .45;
+    optionalJump.play().catch(() => tone(520, .11, 'square', .035));
+  };
+  const loseLife = () => {
+    tone(190, .28, 'sawtooth', .05); tone(118, .35, 'triangle', .04, .14);
+    setLives((n) => {
+      if (n <= 1) {
+        window.setTimeout(() => setScene('gameover'), 80);
+        return 0;
+      }
+      return n - 1;
+    });
+  };
+  const checkpoint = () => {
+    setCheckpointToast(true);
+    window.setTimeout(() => setCheckpointToast(false), 1800);
+    tone(659, .09, 'triangle', .035); tone(880, .15, 'triangle', .04, .1);
+  };
+  const goal = () => {
+    tone(523, .13, 'triangle', .045); tone(659, .13, 'triangle', .045, .14); tone(784, .28, 'triangle', .05, .28);
+    setScene(level === 3 ? 'victory' : 'complete');
+  };
+  const advance = () => {
+    setLevel((n) => n + 1); setProgress(0); setScene('playing');
+  };
+  const retry = () => {
+    setLevel(1); setLives(3); setRekhas(0); setSeconds(0); setProgress(0); setScene('playing');
+  };
+  const timeLabel = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+  const isGame = scene !== 'title';
+  const isActive = scene === 'playing';
+
+  return (
+    <main className="game-shell">
+      <header className="topline">
+        <div className="brand"><div className="brand-mark">R</div><div>REKHA FIREBOUND<small>AN ADVENTURE IN THREE ACTS</small></div></div>
+        <div className="top-actions">
+          <button className="icon-button" onClick={() => setMuted((m) => !m)} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>{muted ? 'Sound off' : 'Sound on'}</button>
+          {scene === 'playing' && <button className="icon-button" onClick={() => setScene('paused')} aria-label="Pause game">Ⅱ</button>}
+        </div>
+      </header>
+
+      <section className="game-frame" aria-label="Rekha Firebound game">
+        <div className="game-stage">
+          <GameCanvas
+            level={level}
+            active={isActive}
+            onCollect={collect}
+            onDeath={loseLife}
+            onCheckpoint={checkpoint}
+            onGoal={goal}
+            onProgress={setProgress}
+            onJump={jump}
+          />
+          {isGame && (
+            <div className="hud">
+              <div className="hud-group">
+                <div className="hud-chip"><img className="hud-portrait" src="/assets/collectible.png" alt="" /><strong>{rekhas}</strong><span>REKHA</span></div>
+                <div className="hud-chip"><span className="hud-heart">♥</span><strong>{lives}</strong></div>
+              </div>
+              <div className="hud-group">
+                <div className="hud-chip"><strong>0{level}</strong><span>{levelNames[level - 1]}</span></div>
+                <div className="hud-chip timer-chip"><span>TIME</span><strong>{timeLabel}</strong></div>
+                {scene === 'playing' && <button className="hud-chip pause-chip" onClick={() => setScene('paused')} aria-label="Pause">Ⅱ</button>}
+              </div>
+            </div>
+          )}
+          {isGame && <div className="level-progress"><span style={{ width: `${progress}%` }} /></div>}
+          {checkpointToast && scene === 'playing' && <div style={{ position: 'absolute', top: '76px', left: '50%', transform: 'translateX(-50%)', padding: '8px 14px', color: '#fff7df', borderRadius: '10px', background: '#29334ce8', font: '11px "DM Mono",monospace', letterSpacing: '.1em' }}>CHECKPOINT REACHED</div>}
+
+          {scene === 'title' && (
+            <div className="overlay">
+              <div className="modal-card">
+                <div className="title-logo">R</div>
+                <div className="modal-kicker">A little journey, a lot of heart</div>
+                <h1 className="modal-title">Rekha<br />Firebound</h1>
+                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to Rekha.</p>
+                <div className="portrait-row">
+                  <div className="portrait-card hero"><img src="/assets/hero.png" alt="Your brave adventurer" /></div>
+                  <span className="heart-link">✦</span>
+                  <div className="portrait-card"><img src="/assets/collectible.png" alt="Rekha" /></div>
+                </div>
+                <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
+                <div className="instructions"><span className="keycap">← → / A D</span><span className="keycap">SPACE / W / ↑ JUMP</span></div>
+              </div>
+            </div>
+          )}
+          {scene === 'paused' && (
+            <div className="overlay"><div className="modal-card">
+              <div className="modal-kicker">Take a breath</div><h2 className="modal-title">Paused</h2>
+              <p className="modal-copy">Your adventure is right where you left it.</p>
+              <button className="primary-button" onClick={() => setScene('playing')}>Keep going</button>
+              <button className="secondary-button" onClick={() => setScene('title')}>Back to title</button>
+            </div></div>
+          )}
+          {scene === 'complete' && (
+            <div className="overlay"><div className="modal-card">
+              <div className="modal-kicker">Chapter {level} cleared</div><h2 className="modal-title">Level complete!</h2>
+              <p className="modal-copy">You found {rekhas} {rekhas === 1 ? 'Rekha' : 'Rekhas'} on the way. The path keeps going.</p>
+              <button className="primary-button" onClick={advance}>Enter {levelNames[level]} <span aria-hidden="true">→</span></button>
+              <div className="instructions"><span className="keycap">{timeLabel} ADVENTURE TIME</span></div>
+            </div></div>
+          )}
+          {scene === 'gameover' && (
+            <div className="overlay"><div className="modal-card">
+              <div className="modal-kicker">The fire got the better of us</div><h2 className="modal-title">One more try?</h2>
+              <p className="modal-copy">Every brave run teaches you the way. Rekha is still out there.</p>
+              <button className="primary-button" onClick={retry}>Retry adventure</button>
+              <button className="secondary-button" onClick={() => setScene('title')}>Title screen</button>
+            </div></div>
+          )}
+          {scene === 'victory' && (
+            <div className="overlay"><div className="modal-card">
+              <div className="title-logo">♥</div><div className="modal-kicker">All three worlds, one big heart</div>
+              <h2 className="modal-title">Together again.</h2>
+              <p className="modal-copy">You crossed every flame and found {rekhas} Rekhas. The best part of every adventure is who waits at the end.</p>
+              <button className="primary-button" onClick={retry}>Play again</button>
+              <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
+            </div></div>
+          )}
+        </div>
+      </section>
+      <footer className="bottom-bar">
+        <div className="bottom-note"><span className="pixel-dot" /> {isGame ? levelNames[level - 1] : 'Three worlds. One reason to keep going.'}</div>
+        <div className="bottom-note"><span className="keycap">ESC</span> {scene === 'playing' ? 'pause' : 'a story made for Rekha'}</div>
+      </footer>
+    </main>
+  );
+}
+
+export default App;

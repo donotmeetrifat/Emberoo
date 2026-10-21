@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Rekha Firebound"
+description = "A colorful side-scrolling platform game where players guide a hero across three increasingly challenging worlds, leap over animated fire hazards, and collect Rekha portraits."
+version = "1.0.0"
+id = "artifacts/rekha-firebound"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21534
+
+[services.development]
+run = "pnpm --filter @workspace/rekha-firebound run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/rekha-firebound", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/rekha-firebound/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21534"
+BASE_PATH = "/"

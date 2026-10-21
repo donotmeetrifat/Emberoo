@@ -1,0 +1,58 @@
+Build a 2D side-scrolling platformer game in the browser using HTML5 Canvas and JavaScript, in the style of classic retro platformers. Bright, colorful pixel art look with smooth scrolling.
+
+ASSETS I AM UPLOADING
+1. hero.png: the main playable character. Use this image as the hero sprite. Scale it to fit a standard platformer character size and keep its proportions. Flip it horizontally when the hero moves left.
+2. collectible.png: a female character image. Use this as the collectible item, replacing coins completely. Scale it to a small collectible size.
+3. aag.mp3: the jump sound. Play this every time the hero jumps.
+
+If an image has a background, remove it or treat the background color as transparent so the sprite looks clean.
+
+HERO MOVEMENT
+Left and right arrow keys (or A and D) to run.
+Space or Up arrow (or W) to jump.
+Holding the jump key longer makes a higher jump.
+Add gravity, acceleration, friction, and a small bounce animation while running (squash and stretch on the hero image, since it is a static picture).
+Add on screen touch buttons for mobile: left, right, and jump.
+
+FIRE OBSTACLES (replacing enemies)
+Place animated fire hazards across the level. The hero must jump over them.
+Types of fire:
+Small fire on the ground that flickers in place.
+Tall fire pillars that rise and fall on a timer.
+Fire pits between platforms.
+Moving fireballs that roll slowly toward the hero on some sections.
+Animate all fire with flickering orange, yellow, and red particles and a soft glow.
+If the hero touches fire, he loses a life, flashes, and respawns at the last checkpoint.
+
+JUMP SOUND
+Every time the hero jumps, play aag.mp3 and show floating text "Aag" above his head for about 1 second.
+Make sure the sound restarts cleanly on every jump even if jumps happen quickly.
+
+COLLECTIBLES (replacing coins)
+Place collectible.png items along the level: floating in the air, in lines above platforms, in arcs over fire, and hidden in harder to reach spots.
+The collectibles gently bob up and down and have a soft sparkle.
+When the hero touches one, it disappears with a sparkle burst, the counter goes up by 1, and the text "Rekha" pops up above the hero and floats upward for 1 second.
+Also play a voice line saying "Rekha" when collecting. Use a browser text to speech voice for now, and structure the code so I can later replace it with my own rekha.mp3 file.
+
+LEVEL DESIGN
+Three original levels that get harder:
+Level 1: green grassland with gentle platforms and a few small fires.
+Level 2: desert with moving platforms, fire pits, and rolling fireballs.
+Level 3: volcano world with fire pillars, lava floor sections, and tricky jumps.
+Include floating brick blocks, pipes or pillars, gaps, and a checkpoint flag halfway through each level.
+Each level ends with a goal flag. Touching it shows "Level Complete" with the number of Rekhas collected.
+
+UI
+Top of screen: Rekha counter with a small icon of collectible.png, lives (start with 3), level number, and a timer.
+Start screen with game title, Play button, and a preview of the hero.
+Game Over screen with Retry button when lives run out.
+Final victory screen after Level 3 showing total Rekhas collected.
+
+AUDIO
+Cheerful original chiptune background music that loops, with a mute button.
+Small sound effects for collecting, losing a life, and completing a level.
+
+TECHNICAL
+Single self contained project that runs in the browser at 60 fps.
+Camera follows the hero smoothly.
+Keep code modular so I can easily add more levels, more obstacles, and swap sounds later.
