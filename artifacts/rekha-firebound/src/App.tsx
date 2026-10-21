@@ -180,7 +180,10 @@ function App() {
       <header className="topline">
         <div className="brand">
           <img src="/assets/emberoo-run-icon.png" alt="Emberoo" className="brand-mark-img" />
-          <div>EMBEROO<small>AN ADVENTURE IN THREE ACTS</small></div>
+          <div className="brand-text">
+            <span className="brand-title">EMBEROO</span>
+            <small>AN ADVENTURE IN THREE ACTS</small>
+          </div>
         </div>
         <div className="top-actions">
           <button
@@ -189,12 +192,16 @@ function App() {
             title="Customize Characters & Sound"
             aria-label="Customize Characters and Sound"
           >
-            🎨 Customize
+            🎨 Characters
           </button>
           <button className="icon-button" onClick={toggleMute} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>
-            {muted ? 'Sound off' : 'Sound on'}
+            {muted ? '🔇 Sound off' : '🔊 Sound on'}
           </button>
-          {scene === 'playing' && <button className="icon-button" onClick={() => setScene('paused')} aria-label="Pause game">Ⅱ</button>}
+          {scene === 'playing' && (
+            <button className="icon-button pause-btn" onClick={() => setScene('paused')} aria-label="Pause game">
+              ⏸ Pause
+            </button>
+          )}
         </div>
       </header>
 
@@ -227,20 +234,24 @@ function App() {
               <div className="hud-group">
                 <div className="hud-chip"><strong>0{level}</strong><span>{levelNames[level - 1]}</span></div>
                 <div className="hud-chip timer-chip"><span>TIME</span><strong>{timeLabel}</strong></div>
-                {scene === 'playing' && <button className="hud-chip pause-chip" onClick={() => setScene('paused')} aria-label="Pause">Ⅱ</button>}
+                {scene === 'playing' && <button className="hud-chip pause-chip" onClick={() => setScene('paused')} aria-label="Pause">⏸</button>}
               </div>
             </div>
           )}
           {isGame && <div className="level-progress"><span style={{ width: `${progress}%` }} /></div>}
-          {checkpointToast && scene === 'playing' && <div style={{ position: 'absolute', top: '76px', left: '50%', transform: 'translateX(-50%)', padding: '8px 14px', color: '#fff7df', borderRadius: '10px', background: '#29334ce8', font: '11px "DM Mono",monospace', letterSpacing: '.1em' }}>CHECKPOINT REACHED</div>}
+          {checkpointToast && scene === 'playing' && (
+            <div className="checkpoint-toast">
+              <span>✦ CHECKPOINT REACHED ✦</span>
+            </div>
+          )}
 
           {scene === 'title' && (
             <div className="overlay">
-              <div className="modal-card">
+              <div className="modal-card title-modal">
                 <img src="/assets/emberoo-run-icon.png" alt="Emberoo" className="title-logo-img" />
-                <div className="modal-kicker">A little journey, a lot of heart</div>
+                <div className="modal-kicker-pill">AN ADVENTURE IN THREE ACTS</div>
                 <h1 className="modal-title">Emberoo</h1>
-                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to {charConfig.collectibleName}.</p>
+                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to <strong>{charConfig.collectibleName}</strong>.</p>
                 <div className="portrait-row">
                   <div className="portrait-card hero">
                     <img src={charConfig.heroImage} alt={charConfig.heroName} />
@@ -252,66 +263,115 @@ function App() {
                     <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', margin: '0 auto' }}>
+                <div className="modal-actions-stack">
                   <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
-                  <button className="secondary-button" style={{ minHeight: '52px' }} onClick={() => setShowCustomize(true)}>🎨 Customize</button>
+                  <button className="secondary-button" onClick={() => setShowCustomize(true)}>🎨 Customize Characters</button>
                 </div>
-                <div className="instructions"><span className="keycap">← → / A D</span><span className="keycap">SPACE / W / ↑ JUMP</span></div>
+                <div className="instructions">
+                  <span className="keycap">← → / A D</span>
+                  <span className="keycap">SPACE / W / ↑ JUMP</span>
+                  <span className="keycap">ESC PAUSE</span>
+                </div>
               </div>
             </div>
           )}
+
           {scene === 'paused' && (
-            <div className="overlay"><div className="modal-card">
-              <div className="modal-kicker">Take a breath</div><h2 className="modal-title">Paused</h2>
-              <p className="modal-copy">Your adventure is right where you left it.</p>
-              <button className="primary-button" onClick={() => setScene('playing')}>Keep going</button>
-              <button className="secondary-button" onClick={() => setShowCustomize(true)}>🎨 Customize</button>
-              <button className="secondary-button" onClick={() => setScene('title')}>Back to title</button>
-            </div></div>
-          )}
-          {scene === 'complete' && (
-            <div className="overlay"><div className="modal-card">
-              <div className="modal-kicker">Chapter {level} cleared</div><h2 className="modal-title">Level complete!</h2>
-              <div className="portrait-card mini" style={{ margin: '0 auto 12px' }}>
-                <img src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
-                <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
-              </div>
-              <p className="modal-copy">You found {novaCount} {charConfig.collectibleName} {novaCount === 1 ? 'character' : 'characters'} on the way. The path keeps going.</p>
-              <button className="primary-button" onClick={advance}>Enter {levelNames[level]} <span aria-hidden="true">→</span></button>
-              <div className="instructions"><span className="keycap">{timeLabel} ADVENTURE TIME</span></div>
-            </div></div>
-          )}
-          {scene === 'gameover' && (
-            <div className="overlay"><div className="modal-card">
-              <div className="modal-kicker">The fire got the better of us</div><h2 className="modal-title">One more try?</h2>
-              <div className="portrait-card hero mini" style={{ margin: '0 auto 12px' }}>
-                <img src={charConfig.heroImage} alt={charConfig.heroName} />
-                <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
-              </div>
-              <p className="modal-copy">Every brave run teaches you the way. {charConfig.collectibleName} is still out there.</p>
-              <button className="primary-button" onClick={retry}>Retry adventure</button>
-              <button className="secondary-button" onClick={() => setScene('title')}>Title screen</button>
-            </div></div>
-          )}
-          {scene === 'victory' && (
-            <div className="overlay"><div className="modal-card">
-              <div className="title-logo">♥</div><div className="modal-kicker">All three worlds, one big heart</div>
-              <h2 className="modal-title">Together again!</h2>
-              <div className="portrait-row victory">
-                <div className="portrait-card hero">
-                  <img src={charConfig.heroImage} alt={charConfig.heroName} />
-                  <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
+            <div className="overlay">
+              <div className="modal-card pause-modal">
+                <div className="modal-kicker-pill">⏸ GAME PAUSED</div>
+                <h2 className="modal-title">Take a breath</h2>
+                <p className="modal-copy">Your adventure is right where you left it.</p>
+                <div className="modal-actions-stack">
+                  <button className="primary-button" onClick={() => setScene('playing')}>
+                    ▶ Keep Going
+                  </button>
+                  <div className="modal-actions-row">
+                    <button className="secondary-button" onClick={() => setShowCustomize(true)}>
+                      🎨 Customize
+                    </button>
+                    <button className="secondary-button" onClick={() => setScene('title')}>
+                      🏠 Title Screen
+                    </button>
+                  </div>
                 </div>
-                <span className="heart-link">♥</span>
-                <div className="portrait-card">
+              </div>
+            </div>
+          )}
+
+          {scene === 'complete' && (
+            <div className="overlay">
+              <div className="modal-card complete-modal">
+                <div className="modal-kicker-pill success">CHAPTER {level} CLEARED</div>
+                <h2 className="modal-title">Level Complete!</h2>
+                <div className="portrait-card mini" style={{ margin: '12px auto' }}>
                   <img src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
                   <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
                 </div>
+                <p className="modal-copy">You found {novaCount} {charConfig.collectibleName} {novaCount === 1 ? 'character' : 'characters'} on the way. The path keeps going.</p>
+                <div className="modal-actions-stack">
+                  <button className="primary-button" onClick={advance}>
+                    Enter {levelNames[level]} <span aria-hidden="true">→</span>
+                  </button>
+                  <button className="secondary-button" onClick={() => setShowCustomize(true)}>
+                    🎨 Customize Characters
+                  </button>
+                </div>
+                <div className="instructions"><span className="keycap">{timeLabel} ADVENTURE TIME</span></div>
               </div>
-              <p className="modal-copy">You crossed every flame and found {novaCount} {charConfig.collectibleName} characters. The best part of every adventure is who waits at the end.</p>
-              <button className="primary-button" onClick={retry}>Play again</button>
-              <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
-            </div></div>
+            </div>
+          )}
+
+          {scene === 'gameover' && (
+            <div className="overlay">
+              <div className="modal-card gameover-modal">
+                <div className="modal-kicker-pill danger">THE FIRE PREVAILED</div>
+                <h2 className="modal-title">One More Try?</h2>
+                <div className="portrait-card hero mini" style={{ margin: '12px auto' }}>
+                  <img src={charConfig.heroImage} alt={charConfig.heroName} />
+                  <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
+                </div>
+                <p className="modal-copy">Every brave run teaches you the way. {charConfig.collectibleName} is still out there.</p>
+                <div className="modal-actions-stack">
+                  <button className="primary-button" onClick={retry}>
+                    ↺ Retry Adventure
+                  </button>
+                  <button className="secondary-button" onClick={() => setScene('title')}>
+                    🏠 Title Screen
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {scene === 'victory' && (
+            <div className="overlay">
+              <div className="modal-card victory-modal">
+                <div className="modal-kicker-pill success">★ ALL THREE WORLDS CLEARED ★</div>
+                <h2 className="modal-title">Together Again!</h2>
+                <div className="portrait-row victory">
+                  <div className="portrait-card hero">
+                    <img src={charConfig.heroImage} alt={charConfig.heroName} />
+                    <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
+                  </div>
+                  <span className="heart-link">♥</span>
+                  <div className="portrait-card">
+                    <img src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
+                    <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
+                  </div>
+                </div>
+                <p className="modal-copy">You crossed every flame and found {novaCount} {charConfig.collectibleName} characters. The best part of every adventure is who waits at the end.</p>
+                <div className="modal-actions-stack">
+                  <button className="primary-button" onClick={retry}>
+                    ↺ Play Again
+                  </button>
+                  <button className="secondary-button" onClick={() => setShowCustomize(true)}>
+                    🎨 Character Studio
+                  </button>
+                </div>
+                <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
+              </div>
+            </div>
           )}
         </div>
       </section>
