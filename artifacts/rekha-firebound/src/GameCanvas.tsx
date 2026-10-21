@@ -207,7 +207,8 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
           }
         }
         for (const p of game.data.pickups) {
-          if (!p.taken && Math.abs(game.x + game.w / 2 - p.x) < 38 && Math.abs(game.y + game.h / 2 - (p.y + Math.sin(game.frame * .05 + p.phase) * 7)) < 52) {
+          const py = p.y + Math.sin(game.frame * .05 + p.phase) * 7;
+          if (!p.taken && Math.abs(game.x + game.w / 2 - p.x) < 42 && Math.abs(game.y + game.h / 2 - py) < 56) {
             p.taken = true; callbacks.current.onCollect(); game.label = 'NOVA'; game.labelUntil = game.frame + 60;
           }
         }
@@ -304,13 +305,42 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
         }
         ctx.restore();
       }
-      // Portrait keeps original transparency; bobbing sparkle flecks.
+      // High-quality collectible portrait with golden aura and floating sparkles
       for (const p of game.data.pickups) {
         if (p.taken || p.x < game.camera - 80 || p.x > game.camera + 1050) continue;
         const py = p.y + Math.sin(game.frame * .05 + p.phase) * 7;
-        ctx.fillStyle = '#fff4a8'; ctx.fillRect(p.x - 20, py - 17, 4, 4); ctx.fillRect(p.x + 19, py + 10, 3, 3);
-        ctx.fillStyle = '#e4a34f'; ctx.beginPath(); ctx.ellipse(p.x, py + 17, 18, 4, 0, 0, Math.PI * 2); ctx.fill();
-        if (novaReady) ctx.drawImage(novaSprite, p.x - 18, py - 34, 36, 54);
+        const t = game.frame * 0.08 + p.phase;
+        
+        // Soft radiant golden aura
+        const aura = ctx.createRadialGradient(p.x, py, 4, p.x, py, 34);
+        aura.addColorStop(0, 'rgba(255, 242, 175, 0.45)');
+        aura.addColorStop(0.65, 'rgba(255, 205, 100, 0.18)');
+        aura.addColorStop(1, 'rgba(255, 205, 100, 0)');
+        ctx.fillStyle = aura;
+        ctx.beginPath();
+        ctx.arc(p.x, py, 34, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Twinkling sparkle flecks
+        const s1x = p.x - 22 + Math.sin(t) * 4;
+        const s1y = py - 18 + Math.cos(t * 1.3) * 3;
+        const s2x = p.x + 20 + Math.cos(t * 1.1) * 3;
+        const s2y = py + 12 + Math.sin(t * 0.9) * 4;
+        ctx.fillStyle = '#fff9c7';
+        ctx.fillRect(s1x, s1y, 4, 4);
+        ctx.fillStyle = '#ffcf52';
+        ctx.fillRect(s2x, s2y, 3, 3);
+
+        // Subtle ground float shadow
+        ctx.fillStyle = 'rgba(30, 40, 60, 0.15)';
+        ctx.beginPath();
+        ctx.ellipse(p.x, py + 26, 14 + Math.sin(t) * 2, 3.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // High quality full collectible image
+        if (novaReady) {
+          ctx.drawImage(novaSprite, p.x - 23, py - 28, 46, 56);
+        }
       }
       // Player with a gentle squash/stretch run cycle.
       const running = Math.abs(game.vx) > .5 && game.grounded;

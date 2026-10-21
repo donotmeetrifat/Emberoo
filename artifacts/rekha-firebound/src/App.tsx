@@ -194,9 +194,15 @@ function App() {
                 <h1 className="modal-title">NOVA<br />Firebound</h1>
                 <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to NOVA.</p>
                 <div className="portrait-row">
-                  <div className="portrait-card hero"><img src="/assets/hero-transparent.png" alt="Your brave adventurer" /></div>
+                  <div className="portrait-card hero">
+                    <img src="/assets/hero-transparent.png" alt="Hero Adventurer" />
+                    <span className="card-badge">HERO</span>
+                  </div>
                   <span className="heart-link">✦</span>
-                  <div className="portrait-card"><img src="/assets/collectible.png" alt="NOVA" /></div>
+                  <div className="portrait-card">
+                    <img src="/assets/collectible.png" alt="NOVA" />
+                    <span className="card-badge">NOVA</span>
+                  </div>
                 </div>
                 <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
                 <div className="instructions"><span className="keycap">← → / A D</span><span className="keycap">SPACE / W / ↑ JUMP</span></div>
@@ -214,6 +220,10 @@ function App() {
           {scene === 'complete' && (
             <div className="overlay"><div className="modal-card">
               <div className="modal-kicker">Chapter {level} cleared</div><h2 className="modal-title">Level complete!</h2>
+              <div className="portrait-card mini" style={{ margin: '0 auto 12px' }}>
+                <img src="/assets/collectible.png" alt="NOVA" />
+                <span className="card-badge">NOVA</span>
+              </div>
               <p className="modal-copy">You found {novaCount} NOVA {novaCount === 1 ? 'portrait' : 'portraits'} on the way. The path keeps going.</p>
               <button className="primary-button" onClick={advance}>Enter {levelNames[level]} <span aria-hidden="true">→</span></button>
               <div className="instructions"><span className="keycap">{timeLabel} ADVENTURE TIME</span></div>
@@ -222,6 +232,10 @@ function App() {
           {scene === 'gameover' && (
             <div className="overlay"><div className="modal-card">
               <div className="modal-kicker">The fire got the better of us</div><h2 className="modal-title">One more try?</h2>
+              <div className="portrait-card hero mini" style={{ margin: '0 auto 12px' }}>
+                <img src="/assets/hero-transparent.png" alt="Hero" />
+                <span className="card-badge">HERO</span>
+              </div>
               <p className="modal-copy">Every brave run teaches you the way. NOVA is still out there.</p>
               <button className="primary-button" onClick={retry}>Retry adventure</button>
               <button className="secondary-button" onClick={() => setScene('title')}>Title screen</button>
@@ -230,7 +244,18 @@ function App() {
           {scene === 'victory' && (
             <div className="overlay"><div className="modal-card">
               <div className="title-logo">♥</div><div className="modal-kicker">All three worlds, one big heart</div>
-              <h2 className="modal-title">Together again.</h2>
+              <h2 className="modal-title">Together again!</h2>
+              <div className="portrait-row victory">
+                <div className="portrait-card hero">
+                  <img src="/assets/hero-transparent.png" alt="Hero" />
+                  <span className="card-badge">HERO</span>
+                </div>
+                <span className="heart-link">♥</span>
+                <div className="portrait-card">
+                  <img src="/assets/collectible.png" alt="NOVA" />
+                  <span className="card-badge">NOVA</span>
+                </div>
+              </div>
               <p className="modal-copy">You crossed every flame and found {novaCount} NOVA portraits. The best part of every adventure is who waits at the end.</p>
               <button className="primary-button" onClick={retry}>Play again</button>
               <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
