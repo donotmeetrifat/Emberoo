@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import GameCanvas from './GameCanvas';
+import {
+  CharacterConfig,
+  loadCharacterConfig,
+  saveCharacterConfig,
+} from './lib/characterStore';
+import CustomizeModal from './components/CustomizeModal';
 
 type Scene = 'title' | 'playing' | 'paused' | 'complete' | 'gameover' | 'victory';
 
@@ -14,6 +20,9 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [muted, setMuted] = useState(false);
   const [checkpointToast, setCheckpointToast] = useState(false);
+  const [charConfig, setCharConfig] = useState<CharacterConfig>(() => loadCharacterConfig());
+  const [showCustomize, setShowCustomize] = useState(false);
+
   const audioRef = useRef<AudioContext | null>(null);
   const pickupAudioRef = useRef<HTMLAudioElement | null>(null);
   const musicRef = useRef<number | null>(null);
@@ -93,11 +102,12 @@ function App() {
     setLevel(1); setNovaCount(0); setLives(3); setSeconds(0); setProgress(0);
     setScene('playing');
   };
+
   const collect = () => {
     setNovaCount((n) => n + 1);
     if (!mutedRef.current) {
-      if (!pickupAudioRef.current) {
-        pickupAudioRef.current = new Audio('/assets/nova-pickup.mp3');
+      if (!pickupAudioRef.current || pickupAudioRef.current.src !== charConfig.pickupSound) {
+        pickupAudioRef.current = new Audio(charConfig.pickupSound);
         pickupAudioRef.current.preload = 'auto';
         pickupAudioRef.current.volume = .8;
       }
@@ -105,6 +115,16 @@ function App() {
       void pickupAudioRef.current.play().catch(() => tone(880, .12, 'triangle', .05));
     }
   };
+
+  const handleSaveConfig = (newConfig: CharacterConfig) => {
+    setCharConfig(newConfig);
+    saveCharacterConfig(newConfig);
+    if (pickupAudioRef.current) {
+      pickupAudioRef.current.pause();
+      pickupAudioRef.current = null;
+    }
+  };
+
   const toggleMute = () => setMuted((current) => {
     const next = !current;
     mutedRef.current = next;
@@ -114,11 +134,13 @@ function App() {
     }
     return next;
   });
+
   const jump = () => {
     const optionalJump = new Audio('/assets/aag.mp3');
     optionalJump.volume = mutedRef.current ? 0 : .45;
     optionalJump.play().catch(() => tone(520, .11, 'square', .035));
   };
+
   const loseLife = () => {
     tone(190, .28, 'sawtooth', .05); tone(118, .35, 'triangle', .04, .14);
     setLives((n) => {
@@ -129,21 +151,26 @@ function App() {
       return n - 1;
     });
   };
+
   const checkpoint = () => {
     setCheckpointToast(true);
     window.setTimeout(() => setCheckpointToast(false), 1800);
     tone(659, .09, 'triangle', .035); tone(880, .15, 'triangle', .04, .1);
   };
+
   const goal = () => {
     tone(523, .13, 'triangle', .045); tone(659, .13, 'triangle', .045, .14); tone(784, .28, 'triangle', .05, .28);
     setScene(level === 3 ? 'victory' : 'complete');
   };
+
   const advance = () => {
     setLevel((n) => n + 1); setProgress(0); setScene('playing');
   };
+
   const retry = () => {
     setLevel(1); setLives(3); setNovaCount(0); setSeconds(0); setProgress(0); setScene('playing');
   };
+
   const timeLabel = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
   const isGame = scene !== 'title';
   const isActive = scene === 'playing';
@@ -153,7 +180,17 @@ function App() {
       <header className="topline">
         <div className="brand"><div className="brand-mark">N</div><div>NOVA FIREBOUND<small>AN ADVENTURE IN THREE ACTS</small></div></div>
         <div className="top-actions">
-          <button className="icon-button" onClick={toggleMute} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>{muted ? 'Sound off' : 'Sound on'}</button>
+          <button
+            className="icon-button"
+            onClick={() => setShowCustomize(true)}
+            title="Customize Characters & Sound"
+            aria-label="Customize Characters and Sound"
+          >
+            🎨 Customize
+          </button>
+          <button className="icon-button" onClick={toggleMute} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>
+            {muted ? 'Sound off' : 'Sound on'}
+          </button>
           {scene === 'playing' && <button className="icon-button" onClick={() => setScene('paused')} aria-label="Pause game">Ⅱ</button>}
         </div>
       </header>
@@ -162,18 +199,26 @@ function App() {
         <div className="game-stage">
           <GameCanvas
             level={level}
-            active={isActive}
+            active={isActive && !showCustomize}
             onCollect={collect}
             onDeath={loseLife}
             onCheckpoint={checkpoint}
             onGoal={goal}
             onProgress={setProgress}
             onJump={jump}
+            heroSrc={charConfig.heroImage}
+            heroName={charConfig.heroName}
+            collectibleSrc={charConfig.collectibleImage}
+            collectibleName={charConfig.collectibleName}
           />
           {isGame && (
             <div className="hud">
               <div className="hud-group">
-                <div className="hud-chip"><img className="hud-portrait" src="/assets/collectible.png" alt="" /><strong>{novaCount}</strong><span>NOVA</span></div>
+                <div className="hud-chip">
+                  <img className="hud-portrait" src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
+                  <strong>{novaCount}</strong>
+                  <span>{charConfig.collectibleName.toUpperCase()}</span>
+                </div>
                 <div className="hud-chip"><span className="hud-heart">♥</span><strong>{lives}</strong></div>
               </div>
               <div className="hud-group">
@@ -192,19 +237,22 @@ function App() {
                 <div className="title-logo">N</div>
                 <div className="modal-kicker">A little journey, a lot of heart</div>
                 <h1 className="modal-title">NOVA<br />Firebound</h1>
-                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to NOVA.</p>
+                <p className="modal-copy">Leap through sunlit fields, copper dunes and an ember-lit mountain. Find your way back to {charConfig.collectibleName}.</p>
                 <div className="portrait-row">
                   <div className="portrait-card hero">
-                    <img src="/assets/hero-transparent.png" alt="Hero Adventurer" />
-                    <span className="card-badge">HERO</span>
+                    <img src={charConfig.heroImage} alt={charConfig.heroName} />
+                    <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
                   </div>
                   <span className="heart-link">✦</span>
                   <div className="portrait-card">
-                    <img src="/assets/collectible.png" alt="NOVA" />
-                    <span className="card-badge">NOVA</span>
+                    <img src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
+                    <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
                   </div>
                 </div>
-                <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', margin: '0 auto' }}>
+                  <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
+                  <button className="secondary-button" style={{ minHeight: '52px' }} onClick={() => setShowCustomize(true)}>🎨 Customize</button>
+                </div>
                 <div className="instructions"><span className="keycap">← → / A D</span><span className="keycap">SPACE / W / ↑ JUMP</span></div>
               </div>
             </div>
@@ -214,6 +262,7 @@ function App() {
               <div className="modal-kicker">Take a breath</div><h2 className="modal-title">Paused</h2>
               <p className="modal-copy">Your adventure is right where you left it.</p>
               <button className="primary-button" onClick={() => setScene('playing')}>Keep going</button>
+              <button className="secondary-button" onClick={() => setShowCustomize(true)}>🎨 Customize</button>
               <button className="secondary-button" onClick={() => setScene('title')}>Back to title</button>
             </div></div>
           )}
@@ -221,10 +270,10 @@ function App() {
             <div className="overlay"><div className="modal-card">
               <div className="modal-kicker">Chapter {level} cleared</div><h2 className="modal-title">Level complete!</h2>
               <div className="portrait-card mini" style={{ margin: '0 auto 12px' }}>
-                <img src="/assets/collectible.png" alt="NOVA" />
-                <span className="card-badge">NOVA</span>
+                <img src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
+                <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
               </div>
-              <p className="modal-copy">You found {novaCount} NOVA {novaCount === 1 ? 'portrait' : 'portraits'} on the way. The path keeps going.</p>
+              <p className="modal-copy">You found {novaCount} {charConfig.collectibleName} {novaCount === 1 ? 'character' : 'characters'} on the way. The path keeps going.</p>
               <button className="primary-button" onClick={advance}>Enter {levelNames[level]} <span aria-hidden="true">→</span></button>
               <div className="instructions"><span className="keycap">{timeLabel} ADVENTURE TIME</span></div>
             </div></div>
@@ -233,10 +282,10 @@ function App() {
             <div className="overlay"><div className="modal-card">
               <div className="modal-kicker">The fire got the better of us</div><h2 className="modal-title">One more try?</h2>
               <div className="portrait-card hero mini" style={{ margin: '0 auto 12px' }}>
-                <img src="/assets/hero-transparent.png" alt="Hero" />
-                <span className="card-badge">HERO</span>
+                <img src={charConfig.heroImage} alt={charConfig.heroName} />
+                <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
               </div>
-              <p className="modal-copy">Every brave run teaches you the way. NOVA is still out there.</p>
+              <p className="modal-copy">Every brave run teaches you the way. {charConfig.collectibleName} is still out there.</p>
               <button className="primary-button" onClick={retry}>Retry adventure</button>
               <button className="secondary-button" onClick={() => setScene('title')}>Title screen</button>
             </div></div>
@@ -247,16 +296,16 @@ function App() {
               <h2 className="modal-title">Together again!</h2>
               <div className="portrait-row victory">
                 <div className="portrait-card hero">
-                  <img src="/assets/hero-transparent.png" alt="Hero" />
-                  <span className="card-badge">HERO</span>
+                  <img src={charConfig.heroImage} alt={charConfig.heroName} />
+                  <span className="card-badge">{charConfig.heroName.toUpperCase()}</span>
                 </div>
                 <span className="heart-link">♥</span>
                 <div className="portrait-card">
-                  <img src="/assets/collectible.png" alt="NOVA" />
-                  <span className="card-badge">NOVA</span>
+                  <img src={charConfig.collectibleImage} alt={charConfig.collectibleName} />
+                  <span className="card-badge">{charConfig.collectibleName.toUpperCase()}</span>
                 </div>
               </div>
-              <p className="modal-copy">You crossed every flame and found {novaCount} NOVA portraits. The best part of every adventure is who waits at the end.</p>
+              <p className="modal-copy">You crossed every flame and found {novaCount} {charConfig.collectibleName} characters. The best part of every adventure is who waits at the end.</p>
               <button className="primary-button" onClick={retry}>Play again</button>
               <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
             </div></div>
@@ -265,8 +314,16 @@ function App() {
       </section>
       <footer className="bottom-bar">
         <div className="bottom-note"><span className="pixel-dot" /> {isGame ? levelNames[level - 1] : 'Three worlds. One reason to keep going.'}</div>
-        <div className="bottom-note"><span className="keycap">ESC</span> {scene === 'playing' ? 'pause' : 'a story made for NOVA'}</div>
+        <div className="bottom-note"><span className="keycap">ESC</span> {scene === 'playing' ? 'pause' : 'a story made for ' + charConfig.collectibleName}</div>
       </footer>
+
+      {showCustomize && (
+        <CustomizeModal
+          config={charConfig}
+          onSave={handleSaveConfig}
+          onClose={() => setShowCustomize(false)}
+        />
+      )}
     </main>
   );
 }

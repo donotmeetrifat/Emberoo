@@ -9,6 +9,10 @@ type GameCanvasProps = {
   onGoal: () => void;
   onProgress: (progress: number) => void;
   onJump: () => void;
+  heroSrc?: string;
+  heroName?: string;
+  collectibleSrc?: string;
+  collectibleName?: string;
 };
 
 type Platform = {
@@ -84,7 +88,20 @@ function buildLevel(level: number) {
   return { platforms, hazards, pickups, length: config.length };
 }
 
-export default function GameCanvas({ level, active, onCollect, onDeath, onCheckpoint, onGoal, onProgress, onJump }: GameCanvasProps) {
+export default function GameCanvas({
+  level,
+  active,
+  onCollect,
+  onDeath,
+  onCheckpoint,
+  onGoal,
+  onProgress,
+  onJump,
+  heroSrc = '/assets/1-trimmed.png',
+  heroName = 'Bean',
+  collectibleSrc = '/assets/2-trimmed.png',
+  collectibleName = 'Stickman',
+}: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const callbacks = useRef({ onCollect, onDeath, onCheckpoint, onGoal, onProgress, onJump });
   callbacks.current = { onCollect, onDeath, onCheckpoint, onGoal, onProgress, onJump };
@@ -92,6 +109,10 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
   activeRef.current = active;
   const levelRef = useRef(level);
   levelRef.current = level;
+  const heroNameRef = useRef(heroName);
+  heroNameRef.current = heroName;
+  const collectibleNameRef = useRef(collectibleName);
+  collectibleNameRef.current = collectibleName;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,18 +124,34 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
     ctx.scale(renderScale, renderScale);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+
     const hero = new Image();
-    hero.src = '/assets/hero-transparent.png';
+    hero.src = heroSrc;
     let heroReady = false;
-    hero.onload = () => { heroReady = true; };
+    let heroAspect = 0.47;
+    hero.onload = () => {
+      heroReady = true;
+      if (hero.naturalWidth && hero.naturalHeight) {
+        heroAspect = hero.naturalWidth / hero.naturalHeight;
+      }
+    };
+
     const novaSprite = new Image();
-    novaSprite.src = '/assets/collectible.png';
+    novaSprite.src = collectibleSrc;
     let novaReady = false;
-    novaSprite.onload = () => { novaReady = true; };
+    let collectibleAspect = 0.27;
+    novaSprite.onload = () => {
+      novaReady = true;
+      if (novaSprite.naturalWidth && novaSprite.naturalHeight) {
+        collectibleAspect = novaSprite.naturalWidth / novaSprite.naturalHeight;
+      }
+    };
 
     const input = { left: false, right: false, jump: false };
+    const heroHeight = 104;
+    const heroWidth = 50;
     const game = {
-      x: 78, y: 334, vx: 0, vy: 0, w: 72, h: 98, facing: 1, grounded: false,
+      x: 78, y: 432 - heroHeight, vx: 0, vy: 0, w: heroWidth, h: heroHeight, facing: 1, grounded: false,
       camera: 0, frame: 0, lastJump: false, checkpoint: 78, lastCheckpoint: 78,
       invulnerable: 0, flash: 0, label: '' as string, labelUntil: 0, goalSent: false,
       level, data: buildLevel(level),
@@ -173,7 +210,7 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
           game.vy = -11.2;
           game.grounded = false;
           callbacks.current.onJump();
-          game.label = 'rifat'; game.labelUntil = game.frame + 60;
+          game.label = heroNameRef.current; game.labelUntil = game.frame + 60;
         }
         game.lastJump = input.jump;
         if (input.jump && game.vy < -3) game.vy -= .19 * dt;
@@ -208,8 +245,8 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
         }
         for (const p of game.data.pickups) {
           const py = p.y + Math.sin(game.frame * .05 + p.phase) * 7;
-          if (!p.taken && Math.abs(game.x + game.w / 2 - p.x) < 42 && Math.abs(game.y + game.h / 2 - py) < 56) {
-            p.taken = true; callbacks.current.onCollect(); game.label = 'NOVA'; game.labelUntil = game.frame + 60;
+          if (!p.taken && Math.abs(game.x + game.w / 2 - p.x) < 44 && Math.abs(game.y + game.h / 2 - py) < 62) {
+            p.taken = true; callbacks.current.onCollect(); game.label = collectibleNameRef.current; game.labelUntil = game.frame + 60;
           }
         }
         if (game.x > game.checkpoint && game.checkpoint < game.data.length / 2 && game.x > game.data.length * .48) {
@@ -312,34 +349,40 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
         const t = game.frame * 0.08 + p.phase;
         
         // Soft radiant golden aura
-        const aura = ctx.createRadialGradient(p.x, py, 4, p.x, py, 34);
-        aura.addColorStop(0, 'rgba(255, 242, 175, 0.45)');
-        aura.addColorStop(0.65, 'rgba(255, 205, 100, 0.18)');
+        const aura = ctx.createRadialGradient(p.x, py, 4, p.x, py, 38);
+        aura.addColorStop(0, 'rgba(255, 242, 175, 0.48)');
+        aura.addColorStop(0.65, 'rgba(255, 205, 100, 0.22)');
         aura.addColorStop(1, 'rgba(255, 205, 100, 0)');
         ctx.fillStyle = aura;
         ctx.beginPath();
-        ctx.arc(p.x, py, 34, 0, Math.PI * 2);
+        ctx.arc(p.x, py, 38, 0, Math.PI * 2);
         ctx.fill();
 
         // Twinkling sparkle flecks
         const s1x = p.x - 22 + Math.sin(t) * 4;
-        const s1y = py - 18 + Math.cos(t * 1.3) * 3;
+        const s1y = py - 20 + Math.cos(t * 1.3) * 3;
         const s2x = p.x + 20 + Math.cos(t * 1.1) * 3;
-        const s2y = py + 12 + Math.sin(t * 0.9) * 4;
+        const s2y = py + 14 + Math.sin(t * 0.9) * 4;
         ctx.fillStyle = '#fff9c7';
         ctx.fillRect(s1x, s1y, 4, 4);
         ctx.fillStyle = '#ffcf52';
         ctx.fillRect(s2x, s2y, 3, 3);
 
         // Subtle ground float shadow
-        ctx.fillStyle = 'rgba(30, 40, 60, 0.15)';
+        ctx.fillStyle = 'rgba(30, 40, 60, 0.16)';
         ctx.beginPath();
-        ctx.ellipse(p.x, py + 26, 14 + Math.sin(t) * 2, 3.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(p.x, py + 34, 16 + Math.sin(t) * 2, 4, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // High quality full collectible image
+        // High quality full collectible image with proportional scaling
         if (novaReady) {
-          ctx.drawImage(novaSprite, p.x - 23, py - 28, 46, 56);
+          let colH = 64;
+          let colW = Math.max(20, Math.min(52, Math.round(colH * collectibleAspect)));
+          if (collectibleAspect > 1.2) {
+            colW = 48;
+            colH = Math.round(colW / collectibleAspect);
+          }
+          ctx.drawImage(novaSprite, p.x - colW / 2, py - colH / 2, colW, colH);
         }
       }
       // Player with a gentle squash/stretch run cycle.
@@ -351,7 +394,9 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
         if (game.facing < 0) ctx.scale(-1, 1);
         if (heroReady) {
           ctx.scale(1 / squash, squash);
-          ctx.drawImage(hero, -game.w / 2, -game.h, game.w, game.h);
+          const targetH = game.h;
+          const targetW = Math.max(34, Math.min(84, Math.round(targetH * heroAspect)));
+          ctx.drawImage(hero, -targetW / 2, -targetH, targetW, targetH);
         } else {
           ctx.fillStyle = '#29334c'; ctx.fillRect(-22, -72, 44, 72);
           ctx.fillStyle = '#f4bd83'; ctx.fillRect(-15, -82, 30, 30);
@@ -377,7 +422,7 @@ export default function GameCanvas({ level, active, onCollect, onDeath, onCheckp
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
     };
-  }, [level]);
+  }, [level, heroSrc, collectibleSrc]);
 
   const touch = (key: 'left' | 'right' | 'jump', down: boolean) => {
     const e = new CustomEvent('firebound-touch', { detail: { key, down } });
