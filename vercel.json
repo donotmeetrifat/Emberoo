@@ -96,6 +96,19 @@
       ]
     },
     {
+      "source": "/googlef62cf14d0321ed1e.html",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -107,7 +120,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|favicon\\.svg|4a9b7e82f1c3491fa58d203e89bc5120\\.txt|assets/).*)",
+      "source": "/((?!robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|favicon\\.svg|googlef62cf14d0321ed1e\\.html|4a9b7e82f1c3491fa58d203e89bc5120\\.txt|assets/).*)",
       "destination": "/index.html"
     }
   ]
