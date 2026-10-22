@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import GameCanvas from './GameCanvas';
 import {
   CharacterConfig,
+  checkForSharedConfig,
   loadCharacterConfig,
   saveCharacterConfig,
 } from './lib/characterStore';
 import CustomizeModal from './components/CustomizeModal';
+import ShareModal from './components/ShareModal';
+import SharedWelcomeModal from './components/SharedWelcomeModal';
 
 type Scene = 'title' | 'playing' | 'paused' | 'complete' | 'gameover' | 'victory';
 
@@ -22,6 +25,18 @@ function App() {
   const [checkpointToast, setCheckpointToast] = useState(false);
   const [charConfig, setCharConfig] = useState<CharacterConfig>(() => loadCharacterConfig());
   const [showCustomize, setShowCustomize] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharedWelcome, setSharedWelcome] = useState<CharacterConfig | null>(null);
+
+  useEffect(() => {
+    void checkForSharedConfig().then((result) => {
+      if (result) {
+        setCharConfig(result.config);
+        saveCharacterConfig(result.config);
+        setSharedWelcome(result.config);
+      }
+    });
+  }, []);
 
   const audioRef = useRef<AudioContext | null>(null);
   const pickupAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -187,6 +202,14 @@ function App() {
         </div>
         <div className="top-actions">
           <button
+            className="icon-button share-btn"
+            onClick={() => setShowShareModal(true)}
+            title="Share Adventure Link with Friend"
+            aria-label="Share Adventure Link with Friend"
+          >
+            🔗 Share Link
+          </button>
+          <button
             className="icon-button"
             onClick={() => setShowCustomize(true)}
             title="Customize Characters & Sound"
@@ -265,7 +288,10 @@ function App() {
                 </div>
                 <div className="modal-actions-stack">
                   <button className="primary-button" onClick={begin}>Start the adventure <span aria-hidden="true">→</span></button>
-                  <button className="secondary-button" onClick={() => setShowCustomize(true)}>🎨 Customize Characters</button>
+                  <div className="modal-actions-row">
+                    <button className="secondary-button" onClick={() => setShowCustomize(true)}>🎨 Customize</button>
+                    <button className="secondary-button" onClick={() => setShowShareModal(true)}>🔗 Share Link</button>
+                  </div>
                 </div>
                 <div className="instructions">
                   <span className="keycap">← → / A D</span>
@@ -287,6 +313,9 @@ function App() {
                     ▶ Keep Going
                   </button>
                   <div className="modal-actions-row">
+                    <button className="secondary-button" onClick={() => setShowShareModal(true)}>
+                      🔗 Share Link
+                    </button>
                     <button className="secondary-button" onClick={() => setShowCustomize(true)}>
                       🎨 Customize
                     </button>
@@ -365,9 +394,14 @@ function App() {
                   <button className="primary-button" onClick={retry}>
                     ↺ Play Again
                   </button>
-                  <button className="secondary-button" onClick={() => setShowCustomize(true)}>
-                    🎨 Character Studio
-                  </button>
+                  <div className="modal-actions-row">
+                    <button className="secondary-button" onClick={() => setShowShareModal(true)}>
+                      🔗 Share Link
+                    </button>
+                    <button className="secondary-button" onClick={() => setShowCustomize(true)}>
+                      🎨 Character Studio
+                    </button>
+                  </div>
                 </div>
                 <div className="instructions"><span className="keycap">FINAL TIME {timeLabel}</span></div>
               </div>
@@ -384,7 +418,34 @@ function App() {
         <CustomizeModal
           config={charConfig}
           onSave={handleSaveConfig}
+          onShare={(newConfig) => {
+            handleSaveConfig(newConfig);
+            setShowCustomize(false);
+            setShowShareModal(true);
+          }}
           onClose={() => setShowCustomize(false)}
+        />
+      )}
+
+      {showShareModal && (
+        <ShareModal
+          config={charConfig}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {sharedWelcome && (
+        <SharedWelcomeModal
+          config={sharedWelcome}
+          onPlay={() => {
+            setSharedWelcome(null);
+            begin();
+          }}
+          onCustomize={() => {
+            setSharedWelcome(null);
+            setShowCustomize(true);
+          }}
+          onClose={() => setSharedWelcome(null)}
         />
       )}
     </main>

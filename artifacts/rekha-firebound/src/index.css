@@ -140,6 +140,14 @@ button:focus-visible { outline: 3px solid #ed6a39; outline-offset: 3px; }
   background: #ffdcd0;
   box-shadow: 0 5px 0 #bd4929;
 }
+.icon-button.share-btn {
+  background: #fff8e4;
+  border-color: #1c2438;
+  color: #1c2438;
+}
+.icon-button.share-btn:hover {
+  background: #ffefcb;
+}
 
 .game-frame {
   max-width: 1240px;
@@ -595,6 +603,55 @@ button:focus-visible { outline: 3px solid #ed6a39; outline-offset: 3px; }
 @keyframes pop-in {
   from { opacity: 0; transform: translateY(12px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Share Modal & Shared Welcome Modal Styles */
+.modal-card.share-modal {
+  width: min(520px, 94%);
+  text-align: center;
+}
+.modal-card.shared-welcome-modal {
+  width: min(520px, 94%);
+  text-align: center;
+  background: linear-gradient(180deg, #fffef9 0%, #fff0d4 100%);
+  border: 3px solid #1c2438;
+}
+.share-link-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin: 10px 0 14px;
+}
+.share-url-input {
+  height: 44px;
+  border: 2px solid #1c2438;
+  border-radius: 12px;
+  padding: 0 14px;
+  font: 600 12px 'DM Mono', monospace;
+  background: #fffdf8;
+  color: #1c2438;
+  width: 100%;
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+  text-overflow: ellipsis;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.share-url-input:focus {
+  border-color: #ef673c;
+  box-shadow: 0 0 0 3px rgba(239, 103, 60, 0.2);
+}
+.copy-share-btn {
+  width: 100%;
+}
+.share-hint {
+  margin-top: 14px;
+  font: 500 11px 'DM Mono', monospace;
+  color: #7a6c55;
+  line-height: 1.4;
+}
+.share-modal-trigger-btn {
+  background: linear-gradient(180deg, #fff6e4 0%, #fae2b6 100%);
 }
 
 /* Character Studio Customization Styles */

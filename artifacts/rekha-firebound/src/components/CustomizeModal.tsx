@@ -9,10 +9,11 @@ import {
 interface CustomizeModalProps {
   config: CharacterConfig;
   onSave: (newConfig: CharacterConfig) => void;
+  onShare?: (newConfig: CharacterConfig) => void;
   onClose: () => void;
 }
 
-export default function CustomizeModal({ config, onSave, onClose }: CustomizeModalProps) {
+export default function CustomizeModal({ config, onSave, onShare, onClose }: CustomizeModalProps) {
   const [heroImage, setHeroImage] = useState(config.heroImage);
   const [heroName, setHeroName] = useState(config.heroName);
   const [collectibleImage, setCollectibleImage] = useState(config.collectibleImage);
@@ -25,6 +26,14 @@ export default function CustomizeModal({ config, onSave, onClose }: CustomizeMod
   const collectibleInputRef = useRef<HTMLInputElement>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+
+  const getCurrentConfig = (): CharacterConfig => ({
+    heroImage,
+    heroName: heroName.trim() || DEFAULT_CONFIG.heroName,
+    collectibleImage,
+    collectibleName: collectibleName.trim() || DEFAULT_CONFIG.collectibleName,
+    pickupSound,
+  });
 
   const handleHeroFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,14 +92,16 @@ export default function CustomizeModal({ config, onSave, onClose }: CustomizeMod
   };
 
   const handleSave = () => {
-    onSave({
-      heroImage,
-      heroName: heroName.trim() || DEFAULT_CONFIG.heroName,
-      collectibleImage,
-      collectibleName: collectibleName.trim() || DEFAULT_CONFIG.collectibleName,
-      pickupSound,
-    });
+    onSave(getCurrentConfig());
     onClose();
+  };
+
+  const handleSaveAndShare = () => {
+    const newConfig = getCurrentConfig();
+    onSave(newConfig);
+    if (onShare) {
+      onShare(newConfig);
+    }
   };
 
   const handleResetDefaults = () => {
@@ -268,14 +279,21 @@ export default function CustomizeModal({ config, onSave, onClose }: CustomizeMod
             className="secondary-button reset-all-btn"
             onClick={handleResetDefaults}
           >
-            Reset All to Defaults
+            Reset All Defaults
           </button>
           <div className="footer-right">
             <button type="button" className="secondary-button" onClick={onClose}>
               Cancel
             </button>
+            <button
+              type="button"
+              className="secondary-button share-modal-trigger-btn"
+              onClick={handleSaveAndShare}
+            >
+              🔗 Share Link
+            </button>
             <button type="button" className="primary-button" onClick={handleSave}>
-              Save & Apply Changes
+              Save & Apply
             </button>
           </div>
         </footer>
@@ -283,3 +301,4 @@ export default function CustomizeModal({ config, onSave, onClose }: CustomizeMod
     </div>
   );
 }
+
