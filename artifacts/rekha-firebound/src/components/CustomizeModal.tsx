@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   CharacterConfig,
   DEFAULT_CONFIG,
@@ -21,6 +21,9 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
   const [pickupSound, setPickupSound] = useState(config.pickupSound);
   const [isTrimming, setIsTrimming] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [activeTarget, setActiveTarget] = useState<'hero' | 'collectible'>('hero');
+  const [pasteFeedback, setPasteFeedback] = useState<'hero' | 'collectible' | null>(null);
+  const [pasteNotice, setPasteNotice] = useState<string | null>(null);
 
   const heroInputRef = useRef<HTMLInputElement>(null);
   const collectibleInputRef = useRef<HTMLInputElement>(null);
@@ -35,35 +38,89 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
     pickupSound,
   });
 
-  const handleHeroFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processImageFile = async (file: File, target: 'hero' | 'collectible') => {
+    if (!file.type.startsWith('image/')) {
+      setPasteNotice('Please provide an image file (PNG, JPG, or WebP).');
+      setTimeout(() => setPasteNotice(null), 3000);
+      return;
+    }
     setIsTrimming(true);
+    setPasteNotice(null);
     try {
       const dataUrl = await fileToDataUrl(file);
       const trimmed = await trimImageTransparency(dataUrl);
-      setHeroImage(trimmed);
+      if (target === 'hero') {
+        setHeroImage(trimmed);
+        setPasteFeedback('hero');
+      } else {
+        setCollectibleImage(trimmed);
+        setPasteFeedback('collectible');
+      }
+      setTimeout(() => setPasteFeedback(null), 2500);
     } catch (err) {
-      console.error('Error processing hero image:', err);
+      console.error('Error processing image:', err);
+      setPasteNotice('Failed to process image. Please try another image.');
+      setTimeout(() => setPasteNotice(null), 3500);
     } finally {
       setIsTrimming(false);
     }
   };
 
+  const handleHeroFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await processImageFile(file, 'hero');
+  };
+
   const handleCollectibleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setIsTrimming(true);
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      const trimmed = await trimImageTransparency(dataUrl);
-      setCollectibleImage(trimmed);
-    } catch (err) {
-      console.error('Error processing collectible image:', err);
-    } finally {
-      setIsTrimming(false);
-    }
+    if (file) await processImageFile(file, 'collectible');
   };
+
+  const handlePasteClick = async (target: 'hero' | 'collectible') => {
+    setActiveTarget(target);
+    try {
+      if (navigator.clipboard?.read) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const imageType = item.types.find((t) => t.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const file = new File([blob], 'clipboard-pasted.png', { type: imageType });
+            await processImageFile(file, target);
+            return;
+          }
+        }
+      }
+    } catch {
+      // Clipboard read failed or permission denied
+    }
+    setPasteNotice(`Press Ctrl+V (or ⌘+V) to paste your copied image into ${target === 'hero' ? heroName || 'Hero' : collectibleName || 'Collectible'}.`);
+    setTimeout(() => setPasteNotice(null), 3500);
+  };
+
+  // Global paste handler when modal is open
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      let imageFile: File | null = null;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          imageFile = items[i].getAsFile();
+          break;
+        }
+      }
+
+      if (imageFile) {
+        e.preventDefault();
+        void processImageFile(imageFile, activeTarget);
+      }
+    };
+
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [activeTarget]);
 
   const handleSoundFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -127,6 +184,16 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
           </button>
         </header>
 
+        <div className="paste-tip-bar">
+          <span>📋 <strong>Paste feature enabled:</strong> Copy any image and press <strong>Ctrl+V</strong> (or <strong>⌘+V</strong>) to paste it directly!</span>
+        </div>
+
+        {pasteNotice && (
+          <div className="trimming-badge" style={{ background: '#fff2db', borderColor: '#e49f39', color: '#7a4205' }}>
+            <span>💡 {pasteNotice}</span>
+          </div>
+        )}
+
         {isTrimming && (
           <div className="trimming-badge">
             <span className="spinner-dot" /> Auto-optimizing character transparency...
@@ -135,9 +202,15 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
 
         <div className="customize-grid">
           {/* Hero Section */}
-          <section className="customize-card">
+          <section
+            className={`customize-card ${activeTarget === 'hero' ? 'active-target' : ''}`}
+            onClick={() => setActiveTarget('hero')}
+          >
             <div className="customize-card-header">
-              <span className="customize-tag">RUNNING HERO</span>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span className="customize-tag">RUNNING HERO</span>
+                {activeTarget === 'hero' && <span className="paste-target-badge">● Active Paste</span>}
+              </div>
               {heroImage !== DEFAULT_CONFIG.heroImage && (
                 <button
                   type="button"
@@ -148,7 +221,18 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
                 </button>
               )}
             </div>
-            <div className="portrait-preview-box">
+            <div
+              className="portrait-preview-box"
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file) void processImageFile(file, 'hero');
+              }}
+              title="Click or drag & drop an image here, or press Ctrl+V"
+            >
+              {pasteFeedback === 'hero' && <div className="paste-success-badge">✓ Image Pasted!</div>}
               <img src={heroImage} alt="Hero preview" />
               <span className="card-badge">{heroName.toUpperCase() || 'HERO'}</span>
             </div>
@@ -170,19 +254,35 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
               style={{ display: 'none' }}
               onChange={handleHeroFile}
             />
-            <button
-              type="button"
-              className="secondary-button upload-btn"
-              onClick={() => heroInputRef.current?.click()}
-            >
-              📷 Upload New Hero Image
-            </button>
+            <div className="button-action-row">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => heroInputRef.current?.click()}
+              >
+                📁 Upload
+              </button>
+              <button
+                type="button"
+                className="secondary-button paste-btn"
+                onClick={() => handlePasteClick('hero')}
+                title="Paste image from clipboard (Ctrl+V)"
+              >
+                📋 Paste Image
+              </button>
+            </div>
           </section>
 
           {/* Collectible Section */}
-          <section className="customize-card">
+          <section
+            className={`customize-card ${activeTarget === 'collectible' ? 'active-target' : ''}`}
+            onClick={() => setActiveTarget('collectible')}
+          >
             <div className="customize-card-header">
-              <span className="customize-tag">COLLECTIBLE CHARACTER</span>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span className="customize-tag">COLLECTIBLE CHARACTER</span>
+                {activeTarget === 'collectible' && <span className="paste-target-badge">● Active Paste</span>}
+              </div>
               {collectibleImage !== DEFAULT_CONFIG.collectibleImage && (
                 <button
                   type="button"
@@ -193,7 +293,18 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
                 </button>
               )}
             </div>
-            <div className="portrait-preview-box">
+            <div
+              className="portrait-preview-box"
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file) void processImageFile(file, 'collectible');
+              }}
+              title="Click or drag & drop an image here, or press Ctrl+V"
+            >
+              {pasteFeedback === 'collectible' && <div className="paste-success-badge">✓ Image Pasted!</div>}
               <img src={collectibleImage} alt="Collectible preview" />
               <span className="card-badge">{collectibleName.toUpperCase() || 'NOVA'}</span>
             </div>
@@ -215,13 +326,23 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
               style={{ display: 'none' }}
               onChange={handleCollectibleFile}
             />
-            <button
-              type="button"
-              className="secondary-button upload-btn"
-              onClick={() => collectibleInputRef.current?.click()}
-            >
-              ⭐ Upload New Collectible Image
-            </button>
+            <div className="button-action-row">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => collectibleInputRef.current?.click()}
+              >
+                📁 Upload
+              </button>
+              <button
+                type="button"
+                className="secondary-button paste-btn"
+                onClick={() => handlePasteClick('collectible')}
+                title="Paste image from clipboard (Ctrl+V)"
+              >
+                📋 Paste Image
+              </button>
+            </div>
           </section>
         </div>
 
