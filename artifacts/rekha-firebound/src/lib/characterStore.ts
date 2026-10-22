@@ -286,7 +286,7 @@ export async function deserializeShareConfig(shareCode: string): Promise<Charact
 
     if (typeof DecompressionStream !== 'undefined') {
       try {
-        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        const stream = new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
         jsonStr = await new Response(stream).text();
       } catch {
         // May have been stored uncompressed

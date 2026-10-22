@@ -170,7 +170,7 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
   };
 
   return (
-    <div className="overlay" style={{ zIndex: 10 }}>
+    <div className="overlay fixed-overlay">
       <div className="modal-card customize-modal">
         <header className="customize-header">
           <div>

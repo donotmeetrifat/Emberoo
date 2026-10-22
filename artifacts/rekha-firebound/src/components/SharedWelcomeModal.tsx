@@ -14,7 +14,7 @@ export default function SharedWelcomeModal({
   onClose,
 }: SharedWelcomeModalProps) {
   return (
-    <div className="overlay" style={{ zIndex: 11 }}>
+    <div className="overlay fixed-overlay">
       <div className="modal-card shared-welcome-modal">
         <div className="modal-kicker-pill success">✦ SPECIAL ADVENTURE LOADED ✦</div>
         <h2 className="modal-title" style={{ margin: '6px 0 8px', fontSize: 'clamp(28px, 5vw, 40px)' }}>

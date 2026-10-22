@@ -69,7 +69,7 @@ export default function ShareModal({ config, onClose }: ShareModalProps) {
   };
 
   return (
-    <div className="overlay" style={{ zIndex: 12 }}>
+    <div className="overlay fixed-overlay">
       <div className="modal-card share-modal">
         <div className="modal-kicker-pill success">✦ SHARE ADVENTURE LINK ✦</div>
         <h2 className="modal-title" style={{ margin: '4px 0 6px', fontSize: 'clamp(26px, 4.5vw, 36px)' }}>

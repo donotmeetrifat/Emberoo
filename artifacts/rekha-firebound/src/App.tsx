@@ -207,7 +207,8 @@ function App() {
             title="Share Adventure Link with Friend"
             aria-label="Share Adventure Link with Friend"
           >
-            🔗 Share Link
+            <span aria-hidden="true">🔗</span>
+            <span className="btn-label">Share Link</span>
           </button>
           <button
             className="icon-button"
@@ -215,14 +216,17 @@ function App() {
             title="Customize Characters & Sound"
             aria-label="Customize Characters and Sound"
           >
-            🎨 Characters
+            <span aria-hidden="true">🎨</span>
+            <span className="btn-label">Characters</span>
           </button>
           <button className="icon-button" onClick={toggleMute} aria-label={muted ? 'Turn sound on' : 'Mute sound'}>
-            {muted ? '🔇 Sound off' : '🔊 Sound on'}
+            <span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
+            <span className="btn-label">{muted ? 'Muted' : 'Sound'}</span>
           </button>
           {scene === 'playing' && (
             <button className="icon-button pause-btn" onClick={() => setScene('paused')} aria-label="Pause game">
-              ⏸ Pause
+              <span aria-hidden="true">⏸</span>
+              <span className="btn-label">Pause</span>
             </button>
           )}
         </div>

@@ -113,6 +113,7 @@ export default function GameCanvas({
   heroNameRef.current = heroName;
   const collectibleNameRef = useRef(collectibleName);
   collectibleNameRef.current = collectibleName;
+  const inputRef = useRef({ left: false, right: false, jump: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -147,7 +148,6 @@ export default function GameCanvas({
       }
     };
 
-    const input = { left: false, right: false, jump: false };
     const heroHeight = 104;
     const heroWidth = 50;
     const game = {
@@ -161,9 +161,9 @@ export default function GameCanvas({
     const keys = (event: KeyboardEvent, down: boolean) => {
       const k = event.key.toLowerCase();
       if (['arrowleft', 'arrowright', 'arrowup', ' '].includes(k)) event.preventDefault();
-      if (k === 'arrowleft' || k === 'a') input.left = down;
-      if (k === 'arrowright' || k === 'd') input.right = down;
-      if (k === 'arrowup' || k === 'w' || k === ' ') input.jump = down;
+      if (k === 'arrowleft' || k === 'a') inputRef.current.left = down;
+      if (k === 'arrowright' || k === 'd') inputRef.current.right = down;
+      if (k === 'arrowup' || k === 'w' || k === ' ') inputRef.current.jump = down;
     };
     const keyDown = (e: KeyboardEvent) => keys(e, true);
     const keyUp = (e: KeyboardEvent) => keys(e, false);
@@ -173,6 +173,7 @@ export default function GameCanvas({
     const draw = (now: number) => {
       const dt = Math.min((now - (last || now)) / 16.67, 2);
       last = now;
+      const input = inputRef.current;
       game.frame += dt;
       const cfg = LEVELS[level - 1];
       ctx.clearRect(0, 0, 960, 540);
@@ -424,29 +425,70 @@ export default function GameCanvas({
     };
   }, [level, heroSrc, collectibleSrc]);
 
-  const touch = (key: 'left' | 'right' | 'jump', down: boolean) => {
-    const e = new CustomEvent('firebound-touch', { detail: { key, down } });
-    window.dispatchEvent(e);
+  const handleTouch = (
+    key: 'left' | 'right' | 'jump',
+    down: boolean,
+    e?: React.PointerEvent<HTMLButtonElement>
+  ) => {
+    if (e && e.currentTarget && e.pointerId !== undefined) {
+      try {
+        if (down) {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } else if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Safe fallback if pointer capture isn't supported
+      }
+    }
+    inputRef.current[key] = down;
   };
+
   useEffect(() => {
-    const listener = (event: Event) => {
-      const detail = (event as CustomEvent<{ key: string; down: boolean }>).detail;
-      const map: Record<string, string> = { left: 'ArrowLeft', right: 'ArrowRight', jump: ' ' };
-      window.dispatchEvent(new KeyboardEvent(detail.down ? 'keydown' : 'keyup', { key: map[detail.key] }));
+    return () => {
+      inputRef.current = { left: false, right: false, jump: false };
     };
-    window.addEventListener('firebound-touch', listener);
-    return () => window.removeEventListener('firebound-touch', listener);
   }, []);
 
   return (
     <>
       <canvas ref={canvasRef} aria-label="Emberoo platform game" />
-      <div className="mobile-controls">
+      <div className="mobile-controls" aria-label="On-screen game controls">
         <div className="touch-cluster">
-          <button className="touch-button" aria-label="Move left" onPointerDown={() => touch('left', true)} onPointerUp={() => touch('left', false)} onPointerLeave={() => touch('left', false)}>←</button>
-          <button className="touch-button" aria-label="Move right" onPointerDown={() => touch('right', true)} onPointerUp={() => touch('right', false)} onPointerLeave={() => touch('right', false)}>→</button>
+          <button
+            type="button"
+            className="touch-button touch-left"
+            aria-label="Move left"
+            onPointerDown={(e) => handleTouch('left', true, e)}
+            onPointerUp={(e) => handleTouch('left', false, e)}
+            onPointerCancel={(e) => handleTouch('left', false, e)}
+            onLostPointerCapture={() => { inputRef.current.left = false; }}
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            className="touch-button touch-right"
+            aria-label="Move right"
+            onPointerDown={(e) => handleTouch('right', true, e)}
+            onPointerUp={(e) => handleTouch('right', false, e)}
+            onPointerCancel={(e) => handleTouch('right', false, e)}
+            onLostPointerCapture={() => { inputRef.current.right = false; }}
+          >
+            →
+          </button>
         </div>
-        <button className="touch-button jump" aria-label="Jump" onPointerDown={() => touch('jump', true)} onPointerUp={() => touch('jump', false)} onPointerLeave={() => touch('jump', false)}>JUMP</button>
+        <button
+          type="button"
+          className="touch-button jump"
+          aria-label="Jump"
+          onPointerDown={(e) => handleTouch('jump', true, e)}
+          onPointerUp={(e) => handleTouch('jump', false, e)}
+          onPointerCancel={(e) => handleTouch('jump', false, e)}
+          onLostPointerCapture={() => { inputRef.current.jump = false; }}
+        >
+          <span>JUMP</span>
+        </button>
       </div>
     </>
   );
