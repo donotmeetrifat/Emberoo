@@ -37,57 +37,91 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="application/ld+json">
-    [
-      {
-        "@context": "https://schema.org",
-        "@type": "VideoGame",
-        "name": "Emberoo",
-        "url": "https://emberoo.vercel.app/",
-        "author": {
-          "@type": "Person",
-          "name": "Rifat",
-          "url": "https://github.com/donotmeetrifat"
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://emberoo.vercel.app/#website",
+          "url": "https://emberoo.vercel.app/",
+          "name": "Emberoo",
+          "description": "Free browser-based 2D side-scrolling platform adventure game.",
+          "inLanguage": "en",
+          "publisher": {
+            "@type": "Person",
+            "@id": "https://github.com/donotmeetrifat#person",
+            "name": "Rifat",
+            "url": "https://github.com/donotmeetrifat"
+          }
         },
-        "creator": {
-          "@type": "Person",
-          "name": "Rifat",
-          "url": "https://github.com/donotmeetrifat"
+        {
+          "@type": "VideoGame",
+          "@id": "https://emberoo.vercel.app/#game",
+          "name": "Emberoo",
+          "url": "https://emberoo.vercel.app/",
+          "description": "Emberoo is a colorful 2D side-scrolling platform adventure game across three fiery worlds. Customize characters and share custom levels with friends.",
+          "genre": ["Platformer", "Adventure", "Arcade"],
+          "gamePlatform": ["Web Browser", "PC", "Mobile", "Tablet", "iPhone", "iPad"],
+          "applicationCategory": "Game",
+          "operatingSystem": "Any",
+          "inLanguage": "en",
+          "image": "https://emberoo.vercel.app/assets/emberoo-run-logo.png",
+          "playMode": "SinglePlayer",
+          "author": {
+            "@id": "https://github.com/donotmeetrifat#person"
+          },
+          "creator": {
+            "@id": "https://github.com/donotmeetrifat#person"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          },
+          "potentialAction": {
+            "@type": "PlayAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://emberoo.vercel.app/",
+              "actionPlatform": [
+                "http://schema.org/DesktopWebPlatform",
+                "http://schema.org/MobileWebPlatform"
+              ]
+            }
+          }
         },
-        "description": "Emberoo is a colorful 2D side-scrolling platform adventure game across three fiery worlds. Customize characters and share custom levels with friends.",
-        "genre": ["Platformer", "Adventure", "Arcade"],
-        "gamePlatform": ["Web Browser", "PC", "Mobile", "Tablet", "iPhone", "iPad"],
-        "applicationCategory": "Game",
-        "operatingSystem": "Any",
-        "inLanguage": "en",
-        "image": "https://emberoo.vercel.app/assets/emberoo-run-logo.png",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock"
+        {
+          "@type": "WebApplication",
+          "@id": "https://emberoo.vercel.app/#webapp",
+          "name": "Emberoo",
+          "url": "https://emberoo.vercel.app/",
+          "applicationCategory": "GameApplication",
+          "operatingSystem": "All",
+          "browserRequirements": "Requires HTML5 canvas and JavaScript support",
+          "author": {
+            "@id": "https://github.com/donotmeetrifat#person"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
         },
-        "playMode": "SinglePlayer"
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Emberoo",
-        "url": "https://emberoo.vercel.app/",
-        "author": {
-          "@type": "Person",
-          "name": "Rifat",
-          "url": "https://github.com/donotmeetrifat"
-        },
-        "applicationCategory": "GameApplication",
-        "operatingSystem": "All",
-        "browserRequirements": "Requires HTML5 canvas and JavaScript support",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
+        {
+          "@type": "SoftwareSourceCode",
+          "@id": "https://github.com/donotmeetrifat/Emberoo#code",
+          "name": "Emberoo Source Code",
+          "codeRepository": "https://github.com/donotmeetrifat/Emberoo",
+          "programmingLanguage": ["TypeScript", "React", "HTML5 Canvas"],
+          "runtimePlatform": "Web Browser",
+          "license": "https://opensource.org/licenses/MIT",
+          "author": {
+            "@id": "https://github.com/donotmeetrifat#person"
+          }
         }
-      }
-    ]
+      ]
+    }
     </script>
   </head>
   <body>
