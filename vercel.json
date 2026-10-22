@@ -116,11 +116,50 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
+    },
+    {
+      "source": "/favicon.ico",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/x-icon"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.svg",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/svg+xml"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(favicon.*\\.png|apple-touch-icon.*\\.png)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
-      "source": "/((?!robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|favicon\\.svg|googlef62cf14d0321ed1e\\.html|4a9b7e82f1c3491fa58d203e89bc5120\\.txt|assets/).*)",
+      "source": "/((?!robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|favicon.*|apple-touch-icon.*|googlef62cf14d0321ed1e\\.html|4a9b7e82f1c3491fa58d203e89bc5120\\.txt|assets/).*)",
       "destination": "/index.html"
     }
   ]

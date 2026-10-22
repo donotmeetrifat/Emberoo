@@ -1,0 +1,29 @@
+# Emberoo
+
+> Emberoo is a free, colorful 2D side-scrolling platform adventure game playable directly in any web browser on PC, mobile, iPhone, iPad, and tablet.
+
+## Overview
+- Website: https://emberoo.vercel.app/
+- Genre: 2D Platformer / Side-Scrolling Adventure / Arcade
+- Platform: Web (HTML5 Canvas, React, TypeScript, Vite)
+- Cost: 100% Free to play
+
+## Story & Gameplay
+Players leap through three fiery, beautifully illustrated realms:
+1. Sunny Grasslands (Level 1)
+2. Copper Dune Run (Level 2)
+3. Emberpeak Pass (Level 3)
+
+The goal is to leap across gaps, dodge hazards (fireballs, pillars, moving platforms), collect stars/companions, and reach the final portal.
+
+## Custom Character Studio & Sharing
+- Custom Hero: Players can upload or paste their own character images.
+- Custom Collectible: Players can customize the companion character.
+- Custom Sound Effects: Players can upload custom audio or use the default 'Fahhh' sound.
+- Adventure Share Links: Players can generate instant share links containing compressed custom character configs so friends can play the exact customized adventure.
+
+## Controls
+- Movement: Arrow Left/Right or A/D keys
+- Jump: Spacebar, W, or Arrow Up
+- Pause: ESC key or in-game Pause button
+- Mobile / Touch: Ergonomic on-screen tactile D-Pad and Jump button with multi-touch support

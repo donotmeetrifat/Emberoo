@@ -5,10 +5,20 @@
     <loc>https://emberoo.vercel.app/</loc>
     <lastmod>2026-10-22</lastmod>
     <image:image>
+      <image:loc>https://emberoo.vercel.app/assets/emberoo-run-icon.png</image:loc>
+      <image:title>Emberoo Official Icon Logo</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://emberoo.vercel.app/assets/image.png</image:loc>
+      <image:title>Emberoo 2D Adventure Platformer Gameplay</image:title>
+    </image:image>
+    <image:image>
       <image:loc>https://emberoo.vercel.app/assets/emberoo-run-logo.png</image:loc>
+      <image:title>Emberoo Logo</image:title>
     </image:image>
     <image:image>
       <image:loc>https://emberoo.vercel.app/assets/1-trimmed.png</image:loc>
+      <image:title>Emberoo Character</image:title>
     </image:image>
   </url>
 </urlset>
