@@ -9,6 +9,10 @@
       "source": "/(.*)",
       "headers": [
         {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://emberoo.vercel.app; media-src 'self' data: blob:; connect-src 'self' https://api.indexnow.org; frame-ancestors 'self'; object-src 'none'; base-uri 'self';"
+        },
+        {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
@@ -66,6 +70,19 @@
       ]
     },
     {
+      "source": "/4a9b7e82f1c3491fa58d203e89bc5120.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
       "source": "/site.webmanifest",
       "headers": [
         {
@@ -90,7 +107,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|favicon\\.svg|assets/).*)",
+      "source": "/((?!robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|favicon\\.svg|4a9b7e82f1c3491fa58d203e89bc5120\\.txt|assets/).*)",
       "destination": "/index.html"
     }
   ]
