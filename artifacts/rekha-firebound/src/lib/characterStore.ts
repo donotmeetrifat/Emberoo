@@ -151,8 +151,8 @@ export function trimImageTransparency(dataUrlOrPath: string): Promise<string> {
  */
 export async function optimizeImageForShare(
   dataUrlOrPath: string,
-  maxW = 100,
-  maxH = 130
+  maxW = 80,
+  maxH = 100
 ): Promise<string> {
   if (!dataUrlOrPath || !dataUrlOrPath.startsWith('data:image/')) {
     return dataUrlOrPath;
@@ -188,7 +188,7 @@ export async function optimizeImageForShare(
         ctx.drawImage(img, 0, 0, targetW, targetH);
 
         // Try WebP first for compact size with alpha channel
-        let out = canvas.toDataURL('image/webp', 0.82);
+        let out = canvas.toDataURL('image/webp', 0.78);
         if (!out.startsWith('data:image/webp')) {
           out = canvas.toDataURL('image/png');
         }
@@ -315,11 +315,57 @@ export async function deserializeShareConfig(shareCode: string): Promise<Charact
 }
 
 /**
- * Creates a complete shareable URL with the character config encoded in the URL hash.
+ * Creates an ultra-short shareable link (e.g. https://emberoo.vercel.app/#s=aB12cD34)
+ * with graceful fallback to compressed direct URL hash.
  */
 export async function getShareableUrl(config: CharacterConfig): Promise<string> {
-  const code = await serializeShareConfig(config);
   const baseUrl = `${window.location.origin}${window.location.pathname}`.replace(/\/+$/, '');
+
+  // 1. Try to generate a super-short link using cloud KV storage
+  try {
+    const [optHero, optCollectible] = await Promise.all([
+      optimizeImageForShare(config.heroImage),
+      optimizeImageForShare(config.collectibleImage),
+    ]);
+
+    const payload: CompactSharePayload = {
+      h: config.heroName.trim() || DEFAULT_CONFIG.heroName,
+      hi: optHero,
+      c: config.collectibleName.trim() || DEFAULT_CONFIG.collectibleName,
+      ci: optCollectible,
+    };
+
+    if (config.pickupSound && config.pickupSound !== DEFAULT_CONFIG.pickupSound) {
+      if (config.pickupSound.length < 15000) {
+        payload.s = config.pickupSound;
+      }
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const res = await fetch('https://bytebin.lucko.me/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = (await res.json()) as { key?: string };
+      if (data?.key) {
+        return `${baseUrl}/#s=${data.key}`;
+      }
+    }
+  } catch (err) {
+    console.warn('Short-link cloud upload failed, falling back to direct URL hash:', err);
+  }
+
+  // 2. Fallback: direct compressed base64url hash (works 100% offline or if service is blocked)
+  const code = await serializeShareConfig(config);
   return `${baseUrl}#share=${code}`;
 }
 
@@ -331,24 +377,73 @@ export interface SharedLoadResult {
 
 /**
  * Checks the current page URL (hash or query param) for a shared character config.
+ * Supports both ultra-short links (#s=... or ?s=...) and legacy/fallback links (#share=... or ?share=...).
  * If found, decodes it, cleans up the URL bar, and returns the loaded config.
  */
 export async function checkForSharedConfig(): Promise<SharedLoadResult | null> {
   try {
-    let shareCode: string | null = null;
+    const hash = window.location.hash || '';
+    const params = new URLSearchParams(window.location.search);
 
-    // 1. Check URL hash: #share=...
-    const hash = window.location.hash;
+    // 1. Check for short code: #s=... or ?s=...
+    let shortCode: string | null = null;
+    if (hash) {
+      const match = hash.match(/[#&]s=([^&]+)/);
+      if (match && match[1]) {
+        shortCode = decodeURIComponent(match[1]).trim();
+      }
+    }
+    if (!shortCode) {
+      const sParam = params.get('s');
+      if (sParam) {
+        shortCode = sParam.trim();
+      }
+    }
+
+    if (shortCode) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const res = await fetch(`https://bytebin.lucko.me/${shortCode}`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const payload = (await res.json()) as CompactSharePayload;
+          if (payload && typeof payload === 'object') {
+            const config: CharacterConfig = {
+              heroName: payload.h?.trim() || DEFAULT_CONFIG.heroName,
+              heroImage: payload.hi || DEFAULT_CONFIG.heroImage,
+              collectibleName: payload.c?.trim() || DEFAULT_CONFIG.collectibleName,
+              collectibleImage: payload.ci || DEFAULT_CONFIG.collectibleImage,
+              pickupSound: payload.s || DEFAULT_CONFIG.pickupSound,
+            };
+
+            // Clean up the URL without reloading the page
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            return {
+              config,
+              heroName: config.heroName,
+              collectibleName: config.collectibleName,
+            };
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('Failed to fetch short config from bytebin:', fetchErr);
+      }
+    }
+
+    // 2. Check for legacy/fallback full code: #share=... or ?share=...
+    let shareCode: string | null = null;
     if (hash) {
       const match = hash.match(/[#&]share=([^&]+)/);
       if (match && match[1]) {
         shareCode = decodeURIComponent(match[1]);
       }
     }
-
-    // 2. Check query params: ?share=...
     if (!shareCode) {
-      const params = new URLSearchParams(window.location.search);
       shareCode = params.get('share');
     }
 
@@ -358,8 +453,7 @@ export async function checkForSharedConfig(): Promise<SharedLoadResult | null> {
     if (!config) return null;
 
     // Clean up the URL without reloading the page
-    const cleanUrl = window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
+    window.history.replaceState({}, document.title, window.location.pathname);
 
     return {
       config,

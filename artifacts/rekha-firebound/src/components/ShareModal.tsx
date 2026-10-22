@@ -101,7 +101,7 @@ export default function ShareModal({ config, onClose }: ShareModalProps) {
             id="share-link-input"
             type="text"
             readOnly
-            value={isGenerating ? 'Generating adventure link...' : shareUrl}
+            value={isGenerating ? 'Generating short link...' : shareUrl}
             onClick={(e) => (e.target as HTMLInputElement).select()}
             className="share-url-input"
           />
@@ -111,7 +111,7 @@ export default function ShareModal({ config, onClose }: ShareModalProps) {
             onClick={handleCopy}
             disabled={isGenerating || !shareUrl}
           >
-            {copied ? '✓ Copied to Clipboard!' : '📋 Copy Adventure Link'}
+            {copied ? '✓ Copied to Clipboard!' : '📋 Copy Short Link'}
           </button>
         </div>
 
@@ -135,7 +135,7 @@ export default function ShareModal({ config, onClose }: ShareModalProps) {
         </div>
 
         <div className="share-hint">
-          <span>💡 Works instantly in any browser without needing to download or log in.</span>
+          <span>💡 Ultra-compact link ({shareUrl ? `${shareUrl.length} chars` : 'short'}) — works instantly in any chat (WhatsApp, SMS, Discord).</span>
         </div>
       </div>
     </div>
