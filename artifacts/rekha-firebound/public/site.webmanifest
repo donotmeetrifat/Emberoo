@@ -1,0 +1,22 @@
+{
+  "name": "Emberoo",
+  "short_name": "Emberoo",
+  "description": "A colorful 2D side-scrolling platform adventure game across three fiery worlds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fae2ab",
+  "theme_color": "#fae2ab",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/assets/emberoo-run-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/emberoo-run-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

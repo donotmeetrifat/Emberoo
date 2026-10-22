@@ -25,36 +25,69 @@
     <meta name="twitter:description" content="Play Emberoo free in your browser! Leap through sunny grasslands, copper dunes, and ember peaks. Create custom characters and share levels with friends." />
     <meta name="twitter:image" content="https://emberoo.vercel.app/assets/emberoo-run-logo.png" />
     <link rel="icon" type="image/png" href="/assets/emberoo-run-icon.png" />
+    <link rel="apple-touch-icon" href="/assets/emberoo-run-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preload" as="image" href="/assets/emberoo-run-icon.png" />
+    <link rel="preload" as="image" href="/assets/1-trimmed.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "VideoGame",
-      "name": "Emberoo",
-      "url": "https://emberoo.vercel.app/",
-      "description": "Emberoo is a colorful 2D side-scrolling platform adventure game across three fiery worlds. Customize characters and share custom levels with friends.",
-      "genre": ["Platformer", "Adventure", "Arcade"],
-      "gamePlatform": ["Web Browser", "PC", "Mobile", "Tablet", "iPhone", "iPad"],
-      "applicationCategory": "Game",
-      "operatingSystem": "Any",
-      "inLanguage": "en",
-      "image": "https://emberoo.vercel.app/assets/emberoo-run-logo.png",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Emberoo",
+        "url": "https://emberoo.vercel.app/",
+        "description": "Emberoo is a colorful 2D side-scrolling platform adventure game across three fiery worlds. Customize characters and share custom levels with friends.",
+        "genre": ["Platformer", "Adventure", "Arcade"],
+        "gamePlatform": ["Web Browser", "PC", "Mobile", "Tablet", "iPhone", "iPad"],
+        "applicationCategory": "Game",
+        "operatingSystem": "Any",
+        "inLanguage": "en",
+        "image": "https://emberoo.vercel.app/assets/emberoo-run-logo.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "playMode": "SinglePlayer"
       },
-      "playMode": "SinglePlayer"
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Emberoo",
+        "url": "https://emberoo.vercel.app/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires HTML5 canvas and JavaScript support",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
     </script>
   </head>
   <body>
     <noscript>
-      <h1>Emberoo — Free 2D Side-Scrolling Adventure Platformer</h1>
-      <p>Emberoo is a vibrant web platform game featuring three fiery worlds: Sunny Grasslands, Copper Dune Run, and Emberpeak Pass. Please enable JavaScript to play.</p>
+      <header>
+        <h1>Emberoo — Free 2D Side-Scrolling Adventure Platformer</h1>
+        <p>Emberoo is a vibrant browser-based platform adventure across three fiery realms. Leap over blazing pits, dodge rising flame pillars, and run to reunite with your companion.</p>
+      </header>
+      <main>
+        <h2>Game Features & Levels</h2>
+        <ul>
+          <li><strong>World 1: Sunny Grasslands</strong> — Gentle rolling hills and brick obstacles.</li>
+          <li><strong>World 2: Copper Dune Run</strong> — Moving floating platforms and floating obstacles.</li>
+          <li><strong>World 3: Emberpeak Pass</strong> — Rising magma pillars and intense hazards.</li>
+        </ul>
+        <h2>Controls</h2>
+        <p>Keyboard: Arrow keys or A/D to run, Spacebar / W / Up Arrow to jump, ESC to pause. Touchscreens: on-screen tactile D-Pad and Jump button.</p>
+        <p><em>Please enable JavaScript in your browser settings to play Emberoo.</em></p>
+      </main>
     </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
