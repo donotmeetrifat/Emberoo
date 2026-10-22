@@ -710,19 +710,6 @@ button:focus-visible { outline: 3px solid #ed6a39; outline-offset: 3px; }
   gap: 16px;
   margin-bottom: 16px;
 }
-.paste-tip-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  margin-bottom: 14px;
-  background: #fff8e8;
-  border: 1.5px solid #d9c49d;
-  border-radius: 12px;
-  font: 500 12px 'Space Grotesk', sans-serif;
-  color: #4e3d23;
-  line-height: 1.4;
-}
 .customize-card {
   background: #fffdf7;
   border: 2px solid #1c2438;
@@ -732,22 +719,6 @@ button:focus-visible { outline: 3px solid #ed6a39; outline-offset: 3px; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.customize-card.active-target {
-  border-color: #ef673c;
-  box-shadow: 0 0 0 2px rgba(239, 103, 60, 0.3), 0 4px 0 #1c2438;
-}
-.paste-target-badge {
-  font: 700 9px 'DM Mono', monospace;
-  letter-spacing: 0.08em;
-  color: #b83d16;
-  background: #ffe9dc;
-  border: 1px solid #f29a79;
-  padding: 2px 7px;
-  border-radius: 5px;
-  text-transform: uppercase;
 }
 .paste-success-badge {
   position: absolute;

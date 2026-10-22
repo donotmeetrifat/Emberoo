@@ -184,10 +184,6 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
           </button>
         </header>
 
-        <div className="paste-tip-bar">
-          <span>📋 <strong>Paste feature enabled:</strong> Copy any image and press <strong>Ctrl+V</strong> (or <strong>⌘+V</strong>) to paste it directly!</span>
-        </div>
-
         {pasteNotice && (
           <div className="trimming-badge" style={{ background: '#fff2db', borderColor: '#e49f39', color: '#7a4205' }}>
             <span>💡 {pasteNotice}</span>
@@ -203,14 +199,11 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
         <div className="customize-grid">
           {/* Hero Section */}
           <section
-            className={`customize-card ${activeTarget === 'hero' ? 'active-target' : ''}`}
+            className="customize-card"
             onClick={() => setActiveTarget('hero')}
           >
             <div className="customize-card-header">
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <span className="customize-tag">RUNNING HERO</span>
-                {activeTarget === 'hero' && <span className="paste-target-badge">● Active Paste</span>}
-              </div>
+              <span className="customize-tag">RUNNING HERO</span>
               {heroImage !== DEFAULT_CONFIG.heroImage && (
                 <button
                   type="button"
@@ -275,14 +268,11 @@ export default function CustomizeModal({ config, onSave, onShare, onClose }: Cus
 
           {/* Collectible Section */}
           <section
-            className={`customize-card ${activeTarget === 'collectible' ? 'active-target' : ''}`}
+            className="customize-card"
             onClick={() => setActiveTarget('collectible')}
           >
             <div className="customize-card-header">
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <span className="customize-tag">COLLECTIBLE CHARACTER</span>
-                {activeTarget === 'collectible' && <span className="paste-target-badge">● Active Paste</span>}
-              </div>
+              <span className="customize-tag">COLLECTIBLE CHARACTER</span>
               {collectibleImage !== DEFAULT_CONFIG.collectibleImage && (
                 <button
                   type="button"
